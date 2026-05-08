@@ -95,6 +95,15 @@
     </div>
   </section>
 
+  <!-- Global year selector -->
+  <div class="year-control-bar" id="year-control-bar">
+    <div class="container year-control-inner">
+      <span class="year-control-label">Snapshot year</span>
+      <select id="global-year" class="chart-select chart-select--lg"></select>
+      <span class="year-control-note">— syncs charts 02 · 03 · 04 · 06</span>
+    </div>
+  </div>
+
   <!-- 02 — Road Users -->
   <section id="road-users" class="chart-section alt-bg">
     <div class="container">
@@ -114,10 +123,7 @@
       <div class="chart-card reveal">
         <div class="chart-title-bar">
           <span class="chart-label">Hospitalisations by Road User Type</span>
-          <div class="chart-controls">
-            <label for="road-user-year">Year</label>
-            <select id="road-user-year" class="chart-select"></select>
-          </div>
+          <span class="chart-source">Source: BITRE</span>
         </div>
         <div id="chart-road-users" class="chart-container"></div>
       </div>
@@ -142,10 +148,7 @@
       <div class="chart-card reveal">
         <div class="chart-title-bar">
           <span class="chart-label">Hospitalisations by Age Group &amp; Sex</span>
-          <div class="chart-controls">
-            <label for="age-sex-year">Year</label>
-            <select id="age-sex-year" class="chart-select"></select>
-          </div>
+          <span class="chart-source">Source: BITRE</span>
         </div>
         <div id="chart-age-sex" class="chart-container"></div>
         <div class="chart-legend" id="legend-age-sex"></div>
@@ -171,10 +174,7 @@
       <div class="chart-card reveal">
         <div class="chart-title-bar">
           <span class="chart-label">Hospitalisations by State / Territory</span>
-          <div class="chart-controls">
-            <label for="state-year">Year</label>
-            <select id="state-year" class="chart-select"></select>
-          </div>
+          <span class="chart-source">Source: BITRE</span>
         </div>
         <div id="chart-states" class="chart-container"></div>
       </div>
@@ -227,10 +227,7 @@
       <div class="chart-card reveal">
         <div class="chart-title-bar">
           <span class="chart-label">First Nations vs Non-Indigenous: Hospitalisations by Remoteness</span>
-          <div class="chart-controls">
-            <label for="fn-year">Year</label>
-            <select id="fn-year" class="chart-select"></select>
-          </div>
+          <span class="chart-source">Source: BITRE</span>
         </div>
         <div id="chart-fn" class="chart-container"></div>
         <div class="chart-legend" id="legend-fn"></div>

@@ -92,6 +92,32 @@ function fillSelect(id, vals, def) {
   if (def != null) s.property('value', String(def));
 }
 
+/* Chart 1 year marker — updated by global year selector */
+let trendRef = null;
+
+function updateTrendMarker(year) {
+  if (!trendRef) return;
+  const { svg, x, h } = trendRef;
+  svg.selectAll('.year-marker').remove();
+  const g = svg.append('g').attr('class', 'year-marker');
+  g.append('line')
+    .attr('x1', x(year)).attr('x2', x(year))
+    .attr('y1', -M.top + 2).attr('y2', h)
+    .attr('stroke', C.amber).attr('stroke-width', 1.8)
+    .attr('stroke-dasharray', '5,3').attr('opacity', 0.55);
+  const lw = 34;
+  g.append('rect')
+    .attr('x', x(year) - lw / 2).attr('y', -M.top + 2)
+    .attr('width', lw).attr('height', 16).attr('rx', 2)
+    .attr('fill', C.amber).attr('opacity', 0.9);
+  g.append('text')
+    .attr('x', x(year)).attr('y', -M.top + 13)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#1c0500').attr('font-size', '10px').attr('font-weight', '700')
+    .attr('font-family', "'JetBrains Mono', monospace")
+    .text(year);
+}
+
 /* CHART 1 — National Trend  (animated line + area) */
 function drawTrend(data) {
   const w = cw('chart-trend');
@@ -191,6 +217,8 @@ function drawTrend(data) {
   };
   regBreak(2012, 'Regulation change');
   regBreak(2017, 'Regulation change');
+
+  trendRef = { svg, x, h };
 }
 
 /* CHART 2 — Road Users  (horizontal bar, animated, year filter)*/
@@ -245,15 +273,26 @@ function drawRoadUsers(data, year) {
     .transition().duration(700).ease(d3.easeExpOut)
     .attr('width', d => x(d.hospitalisations));
 
-  /* value labels */
+  /* value labels + delta vs prior year */
   svg.selectAll('.blabel').data(rows).join('text')
     .attr('class', 'blabel')
     .attr('x', d => x(d.hospitalisations) + 6)
     .attr('y', d => y(d.road_user) + y.bandwidth() / 2 + 4)
-    .attr('font-size', '11px').attr('fill', C.amber)
     .attr('font-family', "'JetBrains Mono', monospace")
-    .text(d => d3.format(',')(d.hospitalisations))
     .style('opacity', 0)
+    .each(function(d) {
+      const sel = d3.select(this);
+      sel.append('tspan').attr('fill', C.amber).attr('font-size', '11px')
+        .text(d3.format(',')(d.hospitalisations));
+      const prev = data.find(r => r.road_user === d.road_user && r.year === year - 1);
+      if (prev) {
+        const pct = (d.hospitalisations - prev.hospitalisations) / prev.hospitalisations;
+        sel.append('tspan')
+          .attr('fill', pct >= 0 ? '#ff7733' : '#66cc66')
+          .attr('font-size', '9px').attr('dx', 5)
+          .text((pct >= 0 ? '▲' : '▼') + d3.format('.1%')(Math.abs(pct)));
+      }
+    })
     .transition().delay(560).duration(280).style('opacity', 1);
 }
 
@@ -361,10 +400,21 @@ function drawStates(data, year) {
     .attr('class', 'blabel')
     .attr('x', d => x(d.cases) + 6)
     .attr('y', d => y(d.state) + y.bandwidth() / 2 + 4)
-    .attr('font-size', '11px').attr('fill', C.amber)
     .attr('font-family', "'JetBrains Mono', monospace")
-    .text(d => d3.format(',')(d.cases))
     .style('opacity', 0)
+    .each(function(d) {
+      const sel = d3.select(this);
+      sel.append('tspan').attr('fill', C.amber).attr('font-size', '11px')
+        .text(d3.format(',')(d.cases));
+      const prev = data.find(r => r.state === d.state && r.year === year - 1);
+      if (prev) {
+        const pct = (d.cases - prev.cases) / prev.cases;
+        sel.append('tspan')
+          .attr('fill', pct >= 0 ? '#ff7733' : '#66cc66')
+          .attr('font-size', '9px').attr('dx', 5)
+          .text((pct >= 0 ? '▲' : '▼') + d3.format('.1%')(Math.abs(pct)));
+      }
+    })
     .transition().delay(550).duration(280).style('opacity', 1);
 }
 
@@ -615,34 +665,22 @@ async function main() {
     drawRemoteness(remoteness);
     drawFNTrend(fnRemote);
 
-    /*  Road users  */
-    fillSelect('road-user-year', years, latest);
+    /* Global year selector — drives charts 02, 03, 04, 06 */
+    fillSelect('global-year', years, latest);
+    updateTrendMarker(latest);
+
     drawRoadUsers(roadUser, latest);
-    d3.select('#road-user-year').on('change', function () {
-      drawRoadUsers(roadUser, +this.value);
-    });
-
-    /*  Age/sex  */
-    fillSelect('age-sex-year', years, latest);
     drawAgeSex(ageSex, latest);
-    d3.select('#age-sex-year').on('change', function () {
-      drawAgeSex(ageSex, +this.value);
-    });
-
-    /* States */
-    fillSelect('state-year', years, latest);
     drawStates(stateData, latest);
-    d3.select('#state-year').on('change', function () {
-      drawStates(stateData, +this.value);
-    });
+    drawFN(fnRemote, latest);
 
-    /* ── First Nations ── */
-    const fnYears = [...new Set(fnRemote.map(d => d.year))].sort((a, b) => a - b);
-    const latestFN = Math.max(...fnYears);
-    fillSelect('fn-year', fnYears, latestFN);
-    drawFN(fnRemote, latestFN);
-    d3.select('#fn-year').on('change', function () {
-      drawFN(fnRemote, +this.value);
+    d3.select('#global-year').on('change', function () {
+      const yr = +this.value;
+      updateTrendMarker(yr);
+      drawRoadUsers(roadUser, yr);
+      drawAgeSex(ageSex, yr);
+      drawStates(stateData, yr);
+      drawFN(fnRemote, yr);
     });
 
     /* Responsive resize */
@@ -650,12 +688,14 @@ async function main() {
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
+        const yr = +d3.select('#global-year').property('value');
         drawTrend(trend);
-        drawRoadUsers(roadUser, +d3.select('#road-user-year').property('value'));
-        drawAgeSex(ageSex,      +d3.select('#age-sex-year').property('value'));
-        drawStates(stateData,   +d3.select('#state-year').property('value'));
+        updateTrendMarker(yr);
+        drawRoadUsers(roadUser, yr);
+        drawAgeSex(ageSex, yr);
+        drawStates(stateData, yr);
         drawRemoteness(remoteness);
-        drawFN(fnRemote,        +d3.select('#fn-year').property('value'));
+        drawFN(fnRemote, yr);
         drawFNTrend(fnRemote);
       }, 220);
     });
