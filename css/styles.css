@@ -279,7 +279,7 @@ a:hover { color: var(--amber); }
 .section-number {
   font-size: 3.2rem;
   font-weight: 900;
-  color: var(--red-dark);
+  color: var(--amber);
   font-family: var(--mono);
   line-height: 1;
   flex-shrink: 0;
