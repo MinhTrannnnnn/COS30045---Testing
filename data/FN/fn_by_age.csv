@@ -1,0 +1,133 @@
+"year","fn_status","age_group","Sum(hospitalisations)"
+2011,"First Nations people","0-7",92
+2011,"First Nations people","17-25",335
+2011,"First Nations people","26-39",286
+2011,"First Nations people","40-64",226
+2011,"First Nations people","65+",24
+2011,"First Nations people","8-16",204
+2011,"Non-Indigenous","0-7",614
+2011,"Non-Indigenous","17-25",7546
+2011,"Non-Indigenous","26-39",7659
+2011,"Non-Indigenous","40-64",10166
+2011,"Non-Indigenous","65+",3735
+2011,"Non-Indigenous","8-16",2277
+2012,"First Nations people","0-7",81
+2012,"First Nations people","17-25",385
+2012,"First Nations people","26-39",372
+2012,"First Nations people","40-64",315
+2012,"First Nations people","65+",22
+2012,"First Nations people","8-16",229
+2012,"Non-Indigenous","0-7",653
+2012,"Non-Indigenous","17-25",7459
+2012,"Non-Indigenous","26-39",7670
+2012,"Non-Indigenous","40-64",10081
+2012,"Non-Indigenous","65+",3862
+2012,"Non-Indigenous","8-16",2065
+2013,"First Nations people","0-7",78
+2013,"First Nations people","17-25",422
+2013,"First Nations people","26-39",366
+2013,"First Nations people","40-64",279
+2013,"First Nations people","65+",27
+2013,"First Nations people","8-16",242
+2013,"Non-Indigenous","0-7",647
+2013,"Non-Indigenous","17-25",7251
+2013,"Non-Indigenous","26-39",7929
+2013,"Non-Indigenous","40-64",10820
+2013,"Non-Indigenous","65+",4081
+2013,"Non-Indigenous","8-16",2111
+2014,"First Nations people","0-7",49
+2014,"First Nations people","17-25",422
+2014,"First Nations people","26-39",388
+2014,"First Nations people","40-64",314
+2014,"First Nations people","65+",14
+2014,"First Nations people","8-16",220
+2014,"Non-Indigenous","0-7",315
+2014,"Non-Indigenous","17-25",7150
+2014,"Non-Indigenous","26-39",8107
+2014,"Non-Indigenous","40-64",11105
+2014,"Non-Indigenous","65+",2128
+2014,"Non-Indigenous","8-16",1980
+2015,"First Nations people","0-7",79
+2015,"First Nations people","17-25",420
+2015,"First Nations people","26-39",449
+2015,"First Nations people","40-64",372
+2015,"First Nations people","65+",41
+2015,"First Nations people","8-16",239
+2015,"Non-Indigenous","0-7",654
+2015,"Non-Indigenous","17-25",7316
+2015,"Non-Indigenous","26-39",8369
+2015,"Non-Indigenous","40-64",11587
+2015,"Non-Indigenous","65+",4671
+2015,"Non-Indigenous","8-16",2176
+2016,"First Nations people","0-7",89
+2016,"First Nations people","17-25",501
+2016,"First Nations people","26-39",422
+2016,"First Nations people","40-64",374
+2016,"First Nations people","65+",29
+2016,"First Nations people","8-16",254
+2016,"Non-Indigenous","0-7",634
+2016,"Non-Indigenous","17-25",7839
+2016,"Non-Indigenous","26-39",8897
+2016,"Non-Indigenous","40-64",12157
+2016,"Non-Indigenous","65+",4957
+2016,"Non-Indigenous","8-16",2200
+2017,"First Nations people","0-7",81
+2017,"First Nations people","17-25",506
+2017,"First Nations people","26-39",435
+2017,"First Nations people","40-64",418
+2017,"First Nations people","65+",42
+2017,"First Nations people","8-16",251
+2017,"Non-Indigenous","0-7",642
+2017,"Non-Indigenous","17-25",7856
+2017,"Non-Indigenous","26-39",8926
+2017,"Non-Indigenous","40-64",12329
+2017,"Non-Indigenous","65+",5055
+2017,"Non-Indigenous","8-16",2222
+2018,"First Nations people","0-7",70
+2018,"First Nations people","17-25",607
+2018,"First Nations people","26-39",542
+2018,"First Nations people","40-64",411
+2018,"First Nations people","65+",47
+2018,"First Nations people","8-16",253
+2018,"Non-Indigenous","0-7",646
+2018,"Non-Indigenous","17-25",7622
+2018,"Non-Indigenous","26-39",9100
+2018,"Non-Indigenous","40-64",12381
+2018,"Non-Indigenous","65+",5305
+2018,"Non-Indigenous","8-16",2144
+2019,"First Nations people","0-7",78
+2019,"First Nations people","17-25",521
+2019,"First Nations people","26-39",539
+2019,"First Nations people","40-64",411
+2019,"First Nations people","65+",59
+2019,"First Nations people","8-16",248
+2019,"Non-Indigenous","0-7",616
+2019,"Non-Indigenous","17-25",7486
+2019,"Non-Indigenous","26-39",8968
+2019,"Non-Indigenous","40-64",12579
+2019,"Non-Indigenous","65+",5614
+2019,"Non-Indigenous","8-16",2219
+2020,"First Nations people","0-7",82
+2020,"First Nations people","17-25",705
+2020,"First Nations people","26-39",659
+2020,"First Nations people","40-64",496
+2020,"First Nations people","65+",53
+2020,"First Nations people","8-16",295
+2020,"Non-Indigenous","0-7",620
+2020,"Non-Indigenous","17-25",7183
+2020,"Non-Indigenous","26-39",8405
+2020,"Non-Indigenous","40-64",11674
+2020,"Non-Indigenous","65+",4826
+2020,"Non-Indigenous","8-16",2478
+2021,"First Nations people","0-7",86
+2021,"First Nations people","17-25",686
+2021,"First Nations people","26-39",597
+2021,"First Nations people","40-64",515
+2021,"First Nations people","65+",45
+2021,"First Nations people","8-16",291
+2021,"Non-Indigenous","0-7",610
+2021,"Non-Indigenous","17-25",7225
+2021,"Non-Indigenous","26-39",8689
+2021,"Non-Indigenous","40-64",12337
+2021,"Non-Indigenous","65+",5361
+2021,"Non-Indigenous","8-16",2533

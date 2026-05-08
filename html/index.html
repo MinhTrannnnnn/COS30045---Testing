@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Australia's Road Trauma — Hospitalised Injuries 2011–2021</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <!-- scroll progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand">ROAD TRAUMA AUSTRALIA</div>
+    <ul class="nav-links">
+      <li><a href="#national-trend">Trend</a></li>
+      <li><a href="#road-users">Road Users</a></li>
+      <li><a href="#age-gender">Age &amp; Gender</a></li>
+      <li><a href="#states">States</a></li>
+      <li><a href="#remoteness">Remoteness</a></li>
+      <li><a href="#first-nations">First Nations</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content">
+      <div class="hero-badge">BITRE DATA &nbsp;·&nbsp; 2011 – 2021</div>
+      <h1 class="hero-title">
+        <span class="hero-number" id="hero-counter">0</span>
+        <span class="hero-title-sub">Australians Hospitalised</span>
+      </h1>
+      <p class="hero-subtitle">from road crash injuries over a decade</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="stat-num">39,866</span>
+          <span class="stat-lbl">Peak year — 2019</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="stat-num">~110</span>
+          <span class="stat-lbl">Hospitalisations per day</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="stat-num">2 : 1</span>
+          <span class="stat-lbl">Male to Female ratio</span>
+        </div>
+      </div>
+      <a href="#national-trend" class="hero-cta">Explore the Data ↓</a>
+    </div>
+  </section>
+
+  <!-- Narrative intro -->
+  <section class="narrative-block">
+    <div class="container">
+      <p class="narrative-text">
+        Every day across Australia, road crashes send over a hundred people to hospital. While fatalities draw
+        the attention of media and policymakers, non-fatal hospitalisations represent a far greater and less
+        visible burden — on individuals, families, and the healthcare system. This data story examines eleven
+        years of hospitalised road crash injuries, revealing who bears the highest risk, how that burden is
+        shifting, and where disparities remain most acute.
+      </p>
+    </div>
+  </section>
+
+  <!-- 01 — National Trend -->
+  <section id="national-trend" class="chart-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">01</div>
+        <div>
+          <h2 class="section-title">A Decade of Rising Hospitalisations</h2>
+          <p class="section-desc">
+            National hospitalised injuries climbed steadily from <strong>34,033</strong> in 2011 to a peak of
+            <strong>39,866</strong> in 2019 — a 17&nbsp;% increase over eight years. The COVID-19 pandemic
+            caused a brief dip in 2020 as travel restrictions curtailed road exposure, but numbers rebounded
+            strongly by 2021, almost fully erasing the pandemic effect.
+          </p>
+        </div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-title-bar">
+          <span class="chart-label">National Hospitalised Injuries, 2011–2021</span>
+          <span class="chart-source">Source: BITRE</span>
+        </div>
+        <div id="chart-trend" class="chart-container"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 — Road Users -->
+  <section id="road-users" class="chart-section alt-bg">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">02</div>
+        <div>
+          <h2 class="section-title">Who Gets Hurt on Our Roads?</h2>
+          <p class="section-desc">
+            Car occupants consistently account for roughly half of all hospitalisations. Yet the most striking
+            trend is the rise of <strong>pedal cyclists</strong>, whose numbers grew from 5,391 in 2011 to
+            8,163 in 2021 — a <strong>51&nbsp;% increase</strong> — tracking Australia's cycling boom.
+            Motorcyclists remain the second-largest group at around 22&nbsp;% each year. Select a year to
+            compare how the landscape has changed.
+          </p>
+        </div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-title-bar">
+          <span class="chart-label">Hospitalisations by Road User Type</span>
+          <div class="chart-controls">
+            <label for="road-user-year">Year</label>
+            <select id="road-user-year" class="chart-select"></select>
+          </div>
+        </div>
+        <div id="chart-road-users" class="chart-container"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 — Age & Gender -->
+  <section id="age-gender" class="chart-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">03</div>
+        <div>
+          <h2 class="section-title">Age &amp; Gender: A Persistent Pattern</h2>
+          <p class="section-desc">
+            Working-age adults aged <strong>40–64</strong> bear the greatest absolute hospitalisation burden.
+            Across every age group and every year, males account for approximately <strong>two-thirds</strong>
+            of hospitalisations. The male–female gap is starkest among young adults (17–25), consistent with
+            international evidence that young men engage in higher-risk driving behaviour.
+          </p>
+        </div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-title-bar">
+          <span class="chart-label">Hospitalisations by Age Group &amp; Sex</span>
+          <div class="chart-controls">
+            <label for="age-sex-year">Year</label>
+            <select id="age-sex-year" class="chart-select"></select>
+          </div>
+        </div>
+        <div id="chart-age-sex" class="chart-container"></div>
+        <div class="chart-legend" id="legend-age-sex"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 — States -->
+  <section id="states" class="chart-section alt-bg">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">04</div>
+        <div>
+          <h2 class="section-title">State by State: Raw Numbers &amp; Context</h2>
+          <p class="section-desc">
+            New South Wales and Victoria dominate in absolute terms, reflecting their larger populations.
+            Direct comparisons without per-capita normalisation can be misleading — the Northern Territory's
+            figures represent a significantly higher rate relative to its population size. This visualisation
+            presents <em>absolute counts</em> only; per-capita analysis is beyond the current dataset scope.
+          </p>
+        </div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-title-bar">
+          <span class="chart-label">Hospitalisations by State / Territory</span>
+          <div class="chart-controls">
+            <label for="state-year">Year</label>
+            <select id="state-year" class="chart-select"></select>
+          </div>
+        </div>
+        <div id="chart-states" class="chart-container"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 — Remoteness -->
+  <section id="remoteness" class="chart-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">05</div>
+        <div>
+          <h2 class="section-title">Urban, Regional, Remote: Where Crashes Happen</h2>
+          <p class="section-desc">
+            Major cities account for the majority of absolute hospitalisations due to population concentration.
+            However, remote Australia faces a disproportionate per-capita risk — higher speeds, longer distances
+            from trauma care, and limited road infrastructure all compound severity. Regional areas show a steady
+            and concerning share across all eleven years.
+          </p>
+        </div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-title-bar">
+          <span class="chart-label">Hospitalisations by Remoteness Category, 2011–2021</span>
+          <span class="chart-source">Source: BITRE</span>
+        </div>
+        <div id="chart-remoteness" class="chart-container"></div>
+        <div class="chart-legend" id="legend-remoteness"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 — First Nations -->
+  <section id="first-nations" class="chart-section alt-bg">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">06</div>
+        <div>
+          <h2 class="section-title">A Hidden Disparity: First Nations Communities</h2>
+          <p class="section-desc">
+            First Nations Australians face a disproportionate road crash injury burden, particularly in remote
+            areas. While raw counts are smaller than for non-Indigenous Australians — partly reflecting
+            population size — <strong>First Nations hospitalisations grew by over 50&nbsp;%</strong> from
+            2011 to 2021. The concentration of injuries in remote regions, where emergency services are least
+            accessible, amplifies the severity and consequence of these events.
+          </p>
+        </div>
+      </div>
+
+      <div class="chart-card reveal">
+        <div class="chart-title-bar">
+          <span class="chart-label">First Nations vs Non-Indigenous: Hospitalisations by Remoteness</span>
+          <div class="chart-controls">
+            <label for="fn-year">Year</label>
+            <select id="fn-year" class="chart-select"></select>
+          </div>
+        </div>
+        <div id="chart-fn" class="chart-container"></div>
+        <div class="chart-legend" id="legend-fn"></div>
+      </div>
+
+      <div class="chart-card reveal" style="margin-top:2rem;">
+        <div class="chart-title-bar">
+          <span class="chart-label">First Nations Hospitalisation Trend, 2011–2021</span>
+          <span class="chart-source">Source: BITRE</span>
+        </div>
+        <div id="chart-fn-trend" class="chart-container"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Findings -->
+  <section class="conclusion-section">
+    <div class="container">
+      <h2 class="conclusion-title">Key Findings</h2>
+      <div class="findings-grid">
+        <div class="finding-card reveal">
+          <div class="finding-num">+17%</div>
+          <h3>Rising National Trend</h3>
+          <p>Hospitalisations rose steadily from 2011 to 2019, driven by population growth and increased road use across all user groups.</p>
+        </div>
+        <div class="finding-card reveal">
+          <div class="finding-num">+51%</div>
+          <h3>Cycling Surge</h3>
+          <p>Pedal cyclist hospitalisations jumped 51&nbsp;% over the decade, making cyclists the fastest-growing at-risk road user group.</p>
+        </div>
+        <div class="finding-card reveal">
+          <div class="finding-num">65%</div>
+          <h3>Male Majority</h3>
+          <p>Males consistently account for approximately two-thirds of all road crash hospitalisations, across every age group and year.</p>
+        </div>
+        <div class="finding-card reveal">
+          <div class="finding-num">+50%</div>
+          <h3>First Nations Burden</h3>
+          <p>First Nations hospitalisations grew by over 50&nbsp;% from 2011–2021, with remote areas bearing a disproportionate share.</p>
+        </div>
+      </div>
+      <div class="data-note">
+        <strong>Data Note:</strong> All figures represent absolute counts of hospitalised injuries from road
+        crashes in Australia (2011–2021). Direct comparisons between jurisdictions, demographic groups, or
+        population categories without per-capita normalisation may be misleading due to differences in
+        population size. Data sourced from the Bureau of Infrastructure and Transport Research Economics
+        (BITRE).
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>Data: Bureau of Infrastructure and Transport Research Economics (BITRE) — Hospitalised Injuries from Road Crashes, 2011–2021</p>
+      <p>Data Visualisation Project &nbsp;·&nbsp; COS30045 &nbsp;·&nbsp; Swinburne University of Technology &nbsp;·&nbsp; 2026</p>
+    </div>
+  </footer>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="../js/script.js"></script>
+</body>
+</html>

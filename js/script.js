@@ -1,0 +1,675 @@
+
+
+'use strict';
+
+/*Colour palette */
+const C = {
+  red:    '#ff2600',
+  orange: '#ff6600',
+  amber:  '#ffaa00',
+  dim:    '#cc2000',
+  // sequential scale for ordered bars (red → amber)
+  seq: i => d3.interpolate('#ff2600', '#ffaa00')(i),
+  // road user fixed colours
+  roadUser: {
+    'Car occupant':                    '#ff2600',
+    'Motorcyclist':                    '#ff4d00',
+    'Pedal cyclist':                   '#ff7300',
+    'Pedestrian':                      '#ff9a00',
+    'Pick-up truck or van occupant':   '#c41e00',
+    'Bus occupant':                    '#941600',
+    'Heavy transport':                 '#6b1000',
+    'Other or unknown':                '#4a0b00',
+  },
+  remoteness: {
+    'Major Cities': '#ff2600',
+    'Regional':     '#ff7700',
+    'Remote':       '#ffcc00',
+  },
+  sex: { Male: '#ff2600', Female: '#ffaa00' },
+  fn:  { 'First Nations people': '#ff2600', 'Non-Indigenous': '#ff9900' },
+};
+
+/* Shared layout  */
+const M = { top: 18, right: 16, bottom: 46, left: 62 };   // default margins
+
+/*  Tooltip  */
+const tip = d3.select('body').append('div')
+  .attr('class', 'chart-tooltip')
+  .style('opacity', 0)
+  .style('pointer-events', 'none');
+
+function showTip(e, title, value, extra = '') {
+  tip.style('opacity', 1)
+    .html(
+      `<div class="tt-title">${title}</div>` +
+      `<div class="tt-value">${d3.format(',')(value)}</div>` +
+      (extra ? `<div class="tt-extra">${extra}</div>` : '')
+    );
+  moveTip(e);
+}
+function moveTip(e) {
+  const x = Math.min(e.clientX + 14, window.innerWidth - 220);
+  const y = Math.max(e.clientY - 50, 8);
+  tip.style('left', x + 'px').style('top', y + 'px');
+}
+function hideTip() { tip.style('opacity', 0); }
+
+/* SVG factory */
+function makeSVG(id, w, h, ml = M.left, mt = M.top) {
+  d3.select(`#${id}`).selectAll('svg').remove();
+  return d3.select(`#${id}`)
+    .append('svg')
+    .attr('width',  w + ml + M.right)
+    .attr('height', h + mt + M.bottom)
+    .append('g')
+    .attr('transform', `translate(${ml},${mt})`);
+}
+
+/* container inner width (excludes padding so SVG never overflows) */
+function cw(id) {
+  const el = document.getElementById(id);
+  const cs = window.getComputedStyle(el);
+  return el.clientWidth
+    - parseFloat(cs.paddingLeft)
+    - parseFloat(cs.paddingRight)
+    - M.left - M.right;
+}
+
+/* y-gridlines helper */
+function yGrid(svg, yScale, w) {
+  svg.append('g').attr('class', 'grid')
+    .call(d3.axisLeft(yScale).tickSize(-w).tickFormat(''))
+    .call(g => g.selectAll('line').attr('stroke', 'rgba(255,80,0,0.07)').attr('stroke-dasharray', '3,4'))
+    .call(g => g.select('.domain').remove());
+}
+
+/* populate <select> */
+function fillSelect(id, vals, def) {
+  const s = d3.select(`#${id}`);
+  s.selectAll('option').remove();
+  vals.forEach(v => s.append('option').attr('value', v).text(v));
+  if (def != null) s.property('value', String(def));
+}
+
+/* CHART 1 — National Trend  (animated line + area) */
+function drawTrend(data) {
+  const w = cw('chart-trend');
+  const h = Math.round(Math.min(360, w * 0.42));
+  const svg = makeSVG('chart-trend', w, h);
+
+  const x = d3.scaleLinear().domain([2011, 2021]).range([0, w]);
+  const y = d3.scaleLinear()
+    .domain([29000, d3.max(data, d => d.hospitalisations) * 1.06])
+    .nice().range([h, 0]);
+
+  yGrid(svg, y, w);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).tickFormat(d3.format('d')).ticks(11));
+  svg.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(y).tickFormat(d => d3.format('.2s')(d)));
+
+  /* gradient def */
+  const defs = svg.append('defs');
+  const grad = defs.append('linearGradient')
+    .attr('id', 'trend-fill').attr('gradientUnits', 'userSpaceOnUse')
+    .attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', h);
+  grad.append('stop').attr('offset', '0%')
+    .attr('stop-color', C.orange).attr('stop-opacity', 0.28);
+  grad.append('stop').attr('offset', '100%')
+    .attr('stop-color', C.orange).attr('stop-opacity', 0);
+
+  /* area */
+  const area = d3.area()
+    .x(d => x(d.year)).y0(h).y1(d => y(d.hospitalisations))
+    .curve(d3.curveCatmullRom.alpha(0.5));
+  svg.append('path').datum(data).attr('fill', 'url(#trend-fill)').attr('d', area);
+
+  /* line — draw animation */
+  const line = d3.line()
+    .x(d => x(d.year)).y(d => y(d.hospitalisations))
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  const path = svg.append('path').datum(data)
+    .attr('fill', 'none').attr('stroke', C.orange)
+    .attr('stroke-width', 2.5).attr('d', line);
+
+  const len = path.node().getTotalLength();
+  path.attr('stroke-dasharray', len).attr('stroke-dashoffset', len)
+    .transition().duration(2200).ease(d3.easeCubicInOut)
+    .attr('stroke-dashoffset', 0);
+
+  /* dots */
+  svg.selectAll('.dot').data(data).join('circle')
+    .attr('cx', d => x(d.year)).attr('cy', d => y(d.hospitalisations))
+    .attr('r', 0).attr('fill', C.amber)
+    .attr('stroke', C.red).attr('stroke-width', 1.5)
+    .on('mouseover', (e, d) => {
+      d3.select(e.currentTarget).transition().duration(120).attr('r', 7);
+      const chg = d3.format('+.1%')((d.hospitalisations - 34033) / 34033);
+      showTip(e, String(d.year), d.hospitalisations, `${chg} vs 2011`);
+    })
+    .on('mousemove', moveTip)
+    .on('mouseout', (e) => {
+      d3.select(e.currentTarget).transition().duration(120).attr('r', 5);
+      hideTip();
+    })
+    .transition().delay((_, i) => 2000 + i * 70).duration(300).attr('r', 5);
+
+  /* annotations */
+  const ann = (yr, label, dy = -14) => {
+    const d = data.find(r => r.year === yr);
+    if (!d) return;
+    const g = svg.append('g').style('opacity', 0);
+    g.append('line')
+      .attr('x1', x(yr)).attr('x2', x(yr))
+      .attr('y1', y(d.hospitalisations) + dy).attr('y2', y(d.hospitalisations) - 2)
+      .attr('stroke', C.red).attr('stroke-width', 1).attr('stroke-dasharray', '3,2');
+    g.append('text')
+      .attr('x', x(yr)).attr('y', y(d.hospitalisations) + dy - 5)
+      .attr('text-anchor', 'middle').attr('fill', C.red)
+      .attr('font-size', '10px').attr('font-weight', '700').text(label);
+    g.transition().delay(2600).duration(400).style('opacity', 1);
+  };
+  ann(2019, 'Peak: 39,866', -36);
+  ann(2020, 'COVID-19 ↓', -36);
+
+  /* regulation-change break markers */
+  const regBreak = (yr, label) => {
+    const xPos = x(yr);
+    const g = svg.append('g').style('opacity', 0);
+    g.append('line')
+      .attr('x1', xPos).attr('x2', xPos)
+      .attr('y1', 0).attr('y2', h)
+      .attr('stroke', '#ffffff').attr('stroke-width', 1.2)
+      .attr('stroke-dasharray', '5,4').attr('opacity', 0.30);
+    g.append('text')
+      .attr('transform', `translate(${xPos + 4}, ${h - 8}) rotate(-90)`)
+      .attr('fill', '#cccccc').attr('font-size', '9px').attr('opacity', 0.65)
+      .text(label);
+    g.transition().delay(2600).duration(400).style('opacity', 1);
+  };
+  regBreak(2012, 'Regulation change');
+  regBreak(2017, 'Regulation change');
+}
+
+/* CHART 2 — Road Users  (horizontal bar, animated, year filter)*/
+function drawRoadUsers(data, year) {
+  const rows = data.filter(d => d.year === year)
+    .sort((a, b) => b.hospitalisations - a.hospitalisations);
+  const total = d3.sum(rows, d => d.hospitalisations);
+
+  const container = document.getElementById('chart-road-users');
+  const _cs1 = window.getComputedStyle(container);
+  const totalW = container.clientWidth - parseFloat(_cs1.paddingLeft) - parseFloat(_cs1.paddingRight);
+  const ml = 180, mr = 80, mt = 10, mb = 6;
+  const w = totalW - ml - mr;
+  const bH = 34, gap = 8;
+  const h = rows.length * (bH + gap) - gap;
+
+  d3.select('#chart-road-users').selectAll('svg').remove();
+  const svg = d3.select('#chart-road-users').append('svg')
+    .attr('width', totalW).attr('height', h + mt + mb)
+    .append('g').attr('transform', `translate(${ml},${mt})`);
+
+  const x = d3.scaleLinear()
+    .domain([0, d3.max(rows, d => d.hospitalisations) * 1.12])
+    .range([0, w]);
+
+  const y = d3.scaleBand()
+    .domain(rows.map(d => d.road_user))
+    .range([0, h]).padding(gap / (bH + gap));
+
+  /* y-axis labels */
+  svg.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(y).tickSize(0))
+    .call(g => g.select('.domain').remove())
+    .selectAll('text')
+    .attr('x', -8).attr('fill', '#c49285').attr('font-size', '12px');
+
+  /* bars */
+  svg.selectAll('.bar').data(rows).join('rect')
+    .attr('class', 'bar')
+    .attr('y', d => y(d.road_user))
+    .attr('height', y.bandwidth()).attr('rx', 2)
+    .attr('fill', (_, i) => C.seq(i / (rows.length - 1)))
+    .attr('opacity', 0.82)
+    .attr('x', 0).attr('width', 0)
+    .on('mouseover', (e, d) => {
+      d3.select(e.currentTarget).attr('opacity', 1);
+      showTip(e, d.road_user, d.hospitalisations,
+        `${d3.format('.1%')(d.hospitalisations / total)} of total in ${year}`);
+    })
+    .on('mousemove', moveTip)
+    .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', 0.82); hideTip(); })
+    .transition().duration(700).ease(d3.easeExpOut)
+    .attr('width', d => x(d.hospitalisations));
+
+  /* value labels */
+  svg.selectAll('.blabel').data(rows).join('text')
+    .attr('class', 'blabel')
+    .attr('x', d => x(d.hospitalisations) + 6)
+    .attr('y', d => y(d.road_user) + y.bandwidth() / 2 + 4)
+    .attr('font-size', '11px').attr('fill', C.amber)
+    .attr('font-family', "'JetBrains Mono', monospace")
+    .text(d => d3.format(',')(d.hospitalisations))
+    .style('opacity', 0)
+    .transition().delay(560).duration(280).style('opacity', 1);
+}
+
+/*CHART 3 — Age & Sex  (grouped bar, year filter)*/
+const AGE_ORDER = ['0-7', '8-16', '17-25', '26-39', '40-64', '65-74', '75+'];
+
+function drawAgeSex(data, year) {
+  const rows = data.filter(d => d.year === year && d.age_group !== 'Missing');
+  const w = cw('chart-age-sex');
+  const h = Math.round(Math.min(340, w * 0.4));
+  const svg = makeSVG('chart-age-sex', w, h);
+
+  const x0 = d3.scaleBand().domain(AGE_ORDER).range([0, w])
+    .paddingInner(0.28).paddingOuter(0.05);
+  const x1 = d3.scaleBand().domain(['Male', 'Female'])
+    .range([0, x0.bandwidth()]).padding(0.06);
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(rows, d => d.hospitalisations) * 1.12])
+    .nice().range([h, 0]);
+
+  yGrid(svg, y, w);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x0));
+  svg.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(y).tickFormat(d => d3.format('.2s')(d)));
+
+  const grouped = d3.group(rows, d => d.age_group);
+
+  AGE_ORDER.forEach(age => {
+    const ag = grouped.get(age) || [];
+    ['Male', 'Female'].forEach(sex => {
+      const d = ag.find(r => r.sex === sex);
+      if (!d) return;
+      svg.append('rect')
+        .attr('x', x0(age) + x1(sex))
+        .attr('y', h).attr('width', x1.bandwidth()).attr('height', 0).attr('rx', 2)
+        .attr('fill', C.sex[sex]).attr('opacity', 0.82)
+        .on('mouseover', (e) => {
+          d3.select(e.currentTarget).attr('opacity', 1);
+          showTip(e, `${age} — ${sex}`, d.hospitalisations);
+        })
+        .on('mousemove', moveTip)
+        .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', 0.82); hideTip(); })
+        .transition().duration(580).ease(d3.easeBackOut.overshoot(1.05))
+        .attr('y', y(d.hospitalisations))
+        .attr('height', h - y(d.hospitalisations));
+    });
+  });
+
+  /* legend */
+  document.getElementById('legend-age-sex').innerHTML =
+    ['Male', 'Female'].map(s =>
+      `<div class="legend-item">
+        <div class="legend-swatch" style="background:${C.sex[s]}"></div>
+        <span>${s}</span>
+      </div>`).join('');
+}
+
+/*CHART 4 — State  (horizontal bar, year filter)*/
+function drawStates(data, year) {
+  const rows = data.filter(d => d.year === year)
+    .sort((a, b) => b.cases - a.cases);
+
+  const container = document.getElementById('chart-states');
+  const _cs2 = window.getComputedStyle(container);
+  const totalW = container.clientWidth - parseFloat(_cs2.paddingLeft) - parseFloat(_cs2.paddingRight);
+  const ml = 52, mr = 80, mt = 8, mb = 6;
+  const w = totalW - ml - mr;
+  const bH = 38, gap = 7;
+  const h = rows.length * (bH + gap) - gap;
+
+  d3.select('#chart-states').selectAll('svg').remove();
+  const svg = d3.select('#chart-states').append('svg')
+    .attr('width', totalW).attr('height', h + mt + mb)
+    .append('g').attr('transform', `translate(${ml},${mt})`);
+
+  const x = d3.scaleLinear()
+    .domain([0, d3.max(rows, d => d.cases) * 1.12]).range([0, w]);
+  const y = d3.scaleBand()
+    .domain(rows.map(d => d.state)).range([0, h])
+    .padding(gap / (bH + gap));
+
+  svg.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(y).tickSize(0))
+    .call(g => g.select('.domain').remove())
+    .selectAll('text')
+    .attr('x', -8).attr('fill', '#c49285')
+    .attr('font-size', '13px').attr('font-weight', '700');
+
+  svg.selectAll('.bar').data(rows).join('rect')
+    .attr('class', 'bar')
+    .attr('y', d => y(d.state)).attr('height', y.bandwidth()).attr('rx', 2)
+    .attr('fill', (_, i) => C.seq(i / (rows.length - 1)))
+    .attr('opacity', 0.82).attr('x', 0).attr('width', 0)
+    .on('mouseover', (e, d) => {
+      d3.select(e.currentTarget).attr('opacity', 1);
+      showTip(e, `${d.state} — ${year}`, d.cases);
+    })
+    .on('mousemove', moveTip)
+    .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', 0.82); hideTip(); })
+    .transition().duration(680).ease(d3.easeExpOut)
+    .attr('width', d => x(d.cases));
+
+  svg.selectAll('.blabel').data(rows).join('text')
+    .attr('class', 'blabel')
+    .attr('x', d => x(d.cases) + 6)
+    .attr('y', d => y(d.state) + y.bandwidth() / 2 + 4)
+    .attr('font-size', '11px').attr('fill', C.amber)
+    .attr('font-family', "'JetBrains Mono', monospace")
+    .text(d => d3.format(',')(d.cases))
+    .style('opacity', 0)
+    .transition().delay(550).duration(280).style('opacity', 1);
+}
+
+/*CHART 5 — Remoteness  (stacked area, animated)*/
+function drawRemoteness(data) {
+  const keys = ['Major Cities', 'Regional', 'Remote'];
+  const years = [...new Set(data.map(d => d.year))].sort((a, b) => a - b);
+
+  const pivoted = years.map(yr => {
+    const o = { year: yr };
+    keys.forEach(k => {
+      o[k] = data.find(d => d.year === yr && d.remoteness === k)?.hospitalisations ?? 0;
+    });
+    return o;
+  });
+
+  const stacked = d3.stack().keys(keys)(pivoted);
+  const w = cw('chart-remoteness');
+  const h = Math.round(Math.min(340, w * 0.42));
+  const svg = makeSVG('chart-remoteness', w, h);
+
+  const x = d3.scaleLinear().domain([2011, 2021]).range([0, w]);
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(stacked[stacked.length - 1], d => d[1]) * 1.04])
+    .nice().range([h, 0]);
+
+  yGrid(svg, y, w);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).tickFormat(d3.format('d')).ticks(11));
+  svg.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(y).tickFormat(d => d3.format('.2s')(d)));
+
+  const area = d3.area()
+    .x(d => x(d.data.year)).y0(d => y(d[0])).y1(d => y(d[1]))
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  stacked.forEach(layer => {
+    /* clip-path reveal animation per layer */
+    const clipId = 'clip-rem-' + layer.key.replace(/\s+/g, '-');
+    const defs = svg.append('defs');
+    const clipRect = defs.append('clipPath').attr('id', clipId)
+      .append('rect').attr('x', 0).attr('y', 0).attr('width', 0).attr('height', h + 20);
+
+    svg.append('path').datum(layer)
+      .attr('fill', C.remoteness[layer.key]).attr('opacity', 0.72)
+      .attr('clip-path', `url(#${clipId})`)
+      .attr('d', area)
+      .on('mousemove', (e, d) => {
+        /* find nearest year by x */
+        const mx = e.offsetX - M.left;
+        const yr = Math.round(x.invert(mx));
+        const pt = pivoted.find(p => p.year === yr);
+        if (pt) showTip(e, `${layer.key} — ${yr}`, pt[layer.key]);
+      })
+      .on('mouseout', hideTip);
+
+    clipRect.transition().duration(2000).ease(d3.easeCubicInOut).attr('width', w);
+  });
+
+  /* legend */
+  document.getElementById('legend-remoteness').innerHTML =
+    keys.map(k =>
+      `<div class="legend-item">
+        <div class="legend-swatch" style="background:${C.remoteness[k]}"></div>
+        <span>${k}</span>
+      </div>`).join('');
+}
+
+/* CHART 6a — FN vs Non-Indigenous by Remoteness  (grouped bar)*/
+function drawFN(data, year) {
+  const rows = data.filter(d => d.year === year);
+  const remCats = ['Major Cities', 'Regional', 'Remote'];
+  const statuses = ['First Nations people', 'Non-Indigenous'];
+
+  const w = cw('chart-fn');
+  const h = Math.round(Math.min(320, w * 0.38));
+  const svg = makeSVG('chart-fn', w, h);
+
+  const x0 = d3.scaleBand().domain(remCats).range([0, w])
+    .paddingInner(0.32).paddingOuter(0.1);
+  const x1 = d3.scaleBand().domain(statuses)
+    .range([0, x0.bandwidth()]).padding(0.08);
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(rows, d => d.val) * 1.12]).nice().range([h, 0]);
+
+  yGrid(svg, y, w);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x0));
+  svg.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(y).tickFormat(d => d3.format(',')(d)));
+
+  remCats.forEach(rem => {
+    statuses.forEach(st => {
+      const d = rows.find(r => r.remoteness === rem && r.fn_status === st);
+      if (!d) return;
+      svg.append('rect')
+        .attr('x', x0(rem) + x1(st)).attr('y', h)
+        .attr('width', x1.bandwidth()).attr('height', 0).attr('rx', 2)
+        .attr('fill', C.fn[st]).attr('opacity', 0.82)
+        .on('mouseover', (e) => {
+          d3.select(e.currentTarget).attr('opacity', 1);
+          showTip(e, `${rem} — ${st}`, d.val);
+        })
+        .on('mousemove', moveTip)
+        .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', 0.82); hideTip(); })
+        .transition().duration(600).ease(d3.easeBackOut.overshoot(1.05))
+        .attr('y', y(d.val))
+        .attr('height', h - y(d.val));
+    });
+  });
+
+  document.getElementById('legend-fn').innerHTML =
+    statuses.map(s =>
+      `<div class="legend-item">
+        <div class="legend-swatch" style="background:${C.fn[s]}"></div>
+        <span>${s}</span>
+      </div>`).join('');
+}
+
+/*CHART 6b — First Nations trend line */
+function drawFNTrend(data) {
+  const years = [...new Set(data.map(d => d.year))].sort((a, b) => a - b);
+  const totals = years.map(yr => ({
+    year: yr,
+    fn: d3.sum(data.filter(d => d.year === yr && d.fn_status === 'First Nations people'), d => d.val),
+  }));
+
+  const w = cw('chart-fn-trend');
+  const h = Math.round(Math.min(300, w * 0.36));
+  const svg = makeSVG('chart-fn-trend', w, h);
+
+  const x = d3.scaleLinear().domain([2011, 2021]).range([0, w]);
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(totals, d => d.fn) * 1.15]).nice().range([h, 0]);
+
+  /* gradient fill */
+  const defs = svg.append('defs');
+  const grad = defs.append('linearGradient')
+    .attr('id', 'fn-fill').attr('gradientUnits', 'userSpaceOnUse')
+    .attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', h);
+  grad.append('stop').attr('offset', '0%').attr('stop-color', C.red).attr('stop-opacity', 0.3);
+  grad.append('stop').attr('offset', '100%').attr('stop-color', C.red).attr('stop-opacity', 0);
+
+  const area = d3.area().x(d => x(d.year)).y0(h).y1(d => y(d.fn))
+    .curve(d3.curveCatmullRom.alpha(0.5));
+  svg.append('path').datum(totals).attr('fill', 'url(#fn-fill)').attr('d', area);
+
+  yGrid(svg, y, w);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).tickFormat(d3.format('d')).ticks(11));
+  svg.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(y).tickFormat(d => d3.format(',')(d)));
+
+  const line = d3.line().x(d => x(d.year)).y(d => y(d.fn))
+    .curve(d3.curveCatmullRom.alpha(0.5));
+  const path = svg.append('path').datum(totals)
+    .attr('fill', 'none').attr('stroke', C.red).attr('stroke-width', 2.5).attr('d', line);
+
+  const len = path.node().getTotalLength();
+  path.attr('stroke-dasharray', len).attr('stroke-dashoffset', len)
+    .transition().duration(2000).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0);
+
+  svg.selectAll('.dot-fn').data(totals).join('circle')
+    .attr('cx', d => x(d.year)).attr('cy', d => y(d.fn))
+    .attr('r', 0).attr('fill', C.amber).attr('stroke', C.red).attr('stroke-width', 1.5)
+    .on('mouseover', (e, d) => {
+      d3.select(e.currentTarget).transition().duration(100).attr('r', 7);
+      showTip(e, `First Nations — ${d.year}`, d.fn);
+    })
+    .on('mousemove', moveTip)
+    .on('mouseout', (e) => {
+      d3.select(e.currentTarget).transition().duration(100).attr('r', 5);
+      hideTip();
+    })
+    .transition().delay((_, i) => 1900 + i * 70).duration(280).attr('r', 5);
+
+  /* growth annotation */
+  const first = totals[0], last = totals[totals.length - 1];
+  const growth = (last.fn - first.fn) / first.fn;
+  const g = svg.append('g').style('opacity', 0);
+  g.append('text')
+    .attr('x', x(last.year)).attr('y', y(last.fn) - 14)
+    .attr('text-anchor', 'end').attr('fill', C.amber)
+    .attr('font-size', '12px').attr('font-weight', '700')
+    .text(`+${d3.format('.0%')(growth)} since 2011`);
+  g.transition().delay(2300).duration(400).style('opacity', 1);
+}
+
+/*SCROLL REVEAL*/
+const revealObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/*SCROLL PROGRESS BAR*/
+window.addEventListener('scroll', () => {
+  const bar = document.getElementById('progress-bar');
+  const scrolled = window.scrollY;
+  const total = document.body.scrollHeight - window.innerHeight;
+  bar.style.width = (scrolled / total * 100) + '%';
+  /* navbar shadow */
+  document.getElementById('navbar').classList.toggle('scrolled', scrolled > 20);
+}, { passive: true });
+
+/* HERO COUNTER ANIMATION */
+function animateCounter(el, target, duration = 2000) {
+  const start = performance.now();
+  const fmt = d3.format(',');
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;  // easeInOut
+    el.textContent = fmt(Math.round(ease * target));
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* MAIN — load all data, draw charts, wire selectors */
+async function main() {
+  try {
+    /* load everything in parallel */
+    const [trend, roadUser, ageSex, stateData, remoteness, fnRemote] =
+      await Promise.all([
+        d3.csv('../data/National/national_annual_trend.csv',
+          d => ({ year: +d.year, hospitalisations: +d.hospitalisations })),
+        d3.csv('../data/National/national_by_road_user.csv',
+          d => ({ year: +d.year, road_user: d.road_user, hospitalisations: +d.hospitalisations })),
+        d3.csv('../data/National/national_by_age_sex.csv',
+          d => ({ year: +d.year, age_group: d.age_group, sex: d.sex, hospitalisations: +d.hospitalisations })),
+        d3.csv('../data/State/state_annual.csv',
+          d => ({ year: +d.year, state: d.state, cases: +d['Sum(cases)'] })),
+        d3.csv('../data/National/national_by_remoteness.csv',
+          d => ({ year: +d.year, remoteness: d.remoteness, hospitalisations: +d.hospitalisations })),
+        d3.csv('../data/FN/fn_by_remoteness.csv',
+          d => ({ year: +d.year, fn_status: d.fn_status, remoteness: d.remoteness,
+                  val: +d['Sum(hospitalisations)'] })),
+      ]);
+
+    const years = [...new Set(trend.map(d => d.year))].sort((a, b) => a - b);
+    const latest = Math.max(...years);
+
+    /*  Hero counter  */
+    const totalHosp = d3.sum(trend, d => d.hospitalisations);
+    animateCounter(document.getElementById('hero-counter'), totalHosp);
+
+    /*  Static charts  */
+    drawTrend(trend);
+    drawRemoteness(remoteness);
+    drawFNTrend(fnRemote);
+
+    /*  Road users  */
+    fillSelect('road-user-year', years, latest);
+    drawRoadUsers(roadUser, latest);
+    d3.select('#road-user-year').on('change', function () {
+      drawRoadUsers(roadUser, +this.value);
+    });
+
+    /*  Age/sex  */
+    fillSelect('age-sex-year', years, latest);
+    drawAgeSex(ageSex, latest);
+    d3.select('#age-sex-year').on('change', function () {
+      drawAgeSex(ageSex, +this.value);
+    });
+
+    /* States */
+    fillSelect('state-year', years, latest);
+    drawStates(stateData, latest);
+    d3.select('#state-year').on('change', function () {
+      drawStates(stateData, +this.value);
+    });
+
+    /* ── First Nations ── */
+    const fnYears = [...new Set(fnRemote.map(d => d.year))].sort((a, b) => a - b);
+    const latestFN = Math.max(...fnYears);
+    fillSelect('fn-year', fnYears, latestFN);
+    drawFN(fnRemote, latestFN);
+    d3.select('#fn-year').on('change', function () {
+      drawFN(fnRemote, +this.value);
+    });
+
+    /* Responsive resize */
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        drawTrend(trend);
+        drawRoadUsers(roadUser, +d3.select('#road-user-year').property('value'));
+        drawAgeSex(ageSex,      +d3.select('#age-sex-year').property('value'));
+        drawStates(stateData,   +d3.select('#state-year').property('value'));
+        drawRemoteness(remoteness);
+        drawFN(fnRemote,        +d3.select('#fn-year').property('value'));
+        drawFNTrend(fnRemote);
+      }, 220);
+    });
+
+  } catch (err) {
+    console.error('Data load error:', err);
+    document.body.insertAdjacentHTML('afterbegin',
+      `<div style="position:fixed;top:60px;left:50%;transform:translateX(-50%);
+        background:#1c0500;border:1px solid #ff2600;color:#ffaa00;padding:1rem 2rem;
+        font-family:monospace;z-index:999;border-radius:3px;">
+        Could not load data. Please serve this site from a local HTTP server
+        (e.g. VS Code Live Server).
+      </div>`);
+  }
+}
+
+main();
