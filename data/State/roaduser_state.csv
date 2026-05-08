@@ -1,4 +1,4 @@
-"year","state","road_user","Sum(cases)"
+"calendar year","state or territory","road user","Sum(count of cases excluding died in hospitals within 30 days)"
 2011,"ACT","Bus occupant",0
 2011,"ACT","Car driver, passenger or unknown position",198
 2011,"ACT","Heavy transport driver, passenger or unknown position",0

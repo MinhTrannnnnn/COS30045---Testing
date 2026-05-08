@@ -1,10 +1,12 @@
-"year","fn_status","road_user","Sum(hospitalisations)"
+"Calendar year","First Nations status","Road user","Sum(Hospitalisations)"
+2011,"First Nations people","Bus occupant",0
 2011,"First Nations people","Car driver, passenger or unknown position",617
 2011,"First Nations people","Heavy transport driver, passenger or unknown position",11
 2011,"First Nations people","Motorcyclist",187
 2011,"First Nations people","Other or unknown",34
 2011,"First Nations people","Pedal cyclist",121
 2011,"First Nations people","Pedestrian",180
+2011,"First Nations people","Pick-up truck or van occupant",0
 2011,"Non-Indigenous","Bus occupant",117
 2011,"Non-Indigenous","Car driver, passenger or unknown position",15597
 2011,"Non-Indigenous","Heavy transport driver, passenger or unknown position",287
@@ -12,6 +14,7 @@
 2011,"Non-Indigenous","Other or unknown",559
 2011,"Non-Indigenous","Pedal cyclist",5174
 2011,"Non-Indigenous","Pedestrian",2522
+2011,"Non-Indigenous","Pick-up truck or van occupant",0
 2012,"First Nations people","Bus occupant",5
 2012,"First Nations people","Car driver, passenger or unknown position",758
 2012,"First Nations people","Heavy transport driver, passenger or unknown position",5
@@ -28,6 +31,7 @@
 2012,"Non-Indigenous","Pedal cyclist",5379
 2012,"Non-Indigenous","Pedestrian",2390
 2012,"Non-Indigenous","Pick-up truck or van occupant",129
+2013,"First Nations people","Bus occupant",0
 2013,"First Nations people","Car driver, passenger or unknown position",755
 2013,"First Nations people","Heavy transport driver, passenger or unknown position",10
 2013,"First Nations people","Motorcyclist",267
@@ -35,6 +39,7 @@
 2013,"First Nations people","Pedal cyclist",173
 2013,"First Nations people","Pedestrian",166
 2013,"First Nations people","Pick-up truck or van occupant",6
+2013,"Non-Indigenous","Bus occupant",0
 2013,"Non-Indigenous","Car driver, passenger or unknown position",15439
 2013,"Non-Indigenous","Heavy transport driver, passenger or unknown position",243
 2013,"Non-Indigenous","Motorcyclist",7617
@@ -42,18 +47,22 @@
 2013,"Non-Indigenous","Pedal cyclist",5985
 2013,"Non-Indigenous","Pedestrian",2409
 2013,"Non-Indigenous","Pick-up truck or van occupant",113
+2014,"First Nations people","Bus occupant",0
 2014,"First Nations people","Car driver, passenger or unknown position",759
 2014,"First Nations people","Heavy transport driver, passenger or unknown position",15
 2014,"First Nations people","Motorcyclist",254
 2014,"First Nations people","Other or unknown",38
 2014,"First Nations people","Pedal cyclist",177
 2014,"First Nations people","Pedestrian",196
+2014,"First Nations people","Pick-up truck or van occupant",0
+2014,"Non-Indigenous","Bus occupant",0
 2014,"Non-Indigenous","Car driver, passenger or unknown position",15363
 2014,"Non-Indigenous","Heavy transport driver, passenger or unknown position",449
 2014,"Non-Indigenous","Motorcyclist",7919
 2014,"Non-Indigenous","Other or unknown",458
 2014,"Non-Indigenous","Pedal cyclist",6354
 2014,"Non-Indigenous","Pedestrian",2316
+2014,"Non-Indigenous","Pick-up truck or van occupant",0
 2015,"First Nations people","Bus occupant",6
 2015,"First Nations people","Car driver, passenger or unknown position",883
 2015,"First Nations people","Heavy transport driver, passenger or unknown position",15
@@ -86,18 +95,22 @@
 2016,"Non-Indigenous","Pedal cyclist",6613
 2016,"Non-Indigenous","Pedestrian",2514
 2016,"Non-Indigenous","Pick-up truck or van occupant",152
+2017,"First Nations people","Bus occupant",0
 2017,"First Nations people","Car driver, passenger or unknown position",938
 2017,"First Nations people","Heavy transport driver, passenger or unknown position",15
 2017,"First Nations people","Motorcyclist",319
 2017,"First Nations people","Other or unknown",35
 2017,"First Nations people","Pedal cyclist",201
 2017,"First Nations people","Pedestrian",209
+2017,"First Nations people","Pick-up truck or van occupant",0
+2017,"Non-Indigenous","Bus occupant",0
 2017,"Non-Indigenous","Car driver, passenger or unknown position",17901
 2017,"Non-Indigenous","Heavy transport driver, passenger or unknown position",500
 2017,"Non-Indigenous","Motorcyclist",8318
 2017,"Non-Indigenous","Other or unknown",554
 2017,"Non-Indigenous","Pedal cyclist",6782
 2017,"Non-Indigenous","Pedestrian",2465
+2017,"Non-Indigenous","Pick-up truck or van occupant",0
 2018,"First Nations people","Bus occupant",6
 2018,"First Nations people","Car driver, passenger or unknown position",1113
 2018,"First Nations people","Heavy transport driver, passenger or unknown position",20
@@ -114,6 +127,7 @@
 2018,"Non-Indigenous","Pedal cyclist",6676
 2018,"Non-Indigenous","Pedestrian",2412
 2018,"Non-Indigenous","Pick-up truck or van occupant",114
+2019,"First Nations people","Bus occupant",0
 2019,"First Nations people","Car driver, passenger or unknown position",996
 2019,"First Nations people","Heavy transport driver, passenger or unknown position",12
 2019,"First Nations people","Motorcyclist",353
@@ -121,6 +135,7 @@
 2019,"First Nations people","Pedal cyclist",240
 2019,"First Nations people","Pedestrian",211
 2019,"First Nations people","Pick-up truck or van occupant",11
+2019,"Non-Indigenous","Bus occupant",0
 2019,"Non-Indigenous","Car driver, passenger or unknown position",18006
 2019,"Non-Indigenous","Heavy transport driver, passenger or unknown position",240
 2019,"Non-Indigenous","Motorcyclist",8463

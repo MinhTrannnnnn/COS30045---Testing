@@ -1,12 +1,34 @@
-"year","hospitalisations"
-2011,34033
-2012,34024
-2013,35001
-2014,35515
-2015,37082
-2016,38963
-2017,39339
-2018,39590
-2019,39866
-2020,37966
-2021,39505
+"Calendar year","ABS remoteness area","Sum(Hospitalisations)"
+2011,"Major Cities",21870
+2011,"Regional",10461
+2011,"Remote",1156
+2012,"Major Cities",21812
+2012,"Regional",10321
+2012,"Remote",1263
+2013,"Major Cities",23134
+2013,"Regional",9984
+2013,"Remote",1220
+2014,"Major Cities",23481
+2014,"Regional",10135
+2014,"Remote",1153
+2015,"Major Cities",24557
+2015,"Regional",10502
+2015,"Remote",1178
+2016,"Major Cities",26344
+2016,"Regional",10662
+2016,"Remote",1144
+2017,"Major Cities",26279
+2017,"Regional",11038
+2017,"Remote",1054
+2018,"Major Cities",26168
+2018,"Regional",11209
+2018,"Remote",1200
+2019,"Major Cities",26555
+2019,"Regional",11045
+2019,"Remote",1099
+2020,"Major Cities",24925
+2020,"Regional",11054
+2020,"Remote",1172
+2021,"Major Cities",26355
+2021,"Regional",11407
+2021,"Remote",1114

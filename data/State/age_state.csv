@@ -1,4 +1,4 @@
-"year","age_group","state","Sum(cases)"
+"calendar year","age group","state or territory","Sum(count of cases excluding died in hospitals within 30 days)"
 2011,"0-7","ACT",5
 2011,"0-7","NSW",204
 2011,"0-7","NT",7

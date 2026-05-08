@@ -1,4 +1,4 @@
-"year","age_group","sex","hospitalisations"
+"Calendar year","Age group","Sex","Sum(Hospitalisations)"
 2011,"0-7","Female",278
 2011,"0-7","Male",441
 2011,"17-25","Female",2616
@@ -55,7 +55,6 @@
 2014,"75+","Male",1075
 2014,"8-16","Female",672
 2014,"8-16","Male",1559
-2014,"Missing","Male",1
 2015,"0-7","Female",326
 2015,"0-7","Male",424
 2015,"17-25","Female",2774

@@ -260,7 +260,7 @@ function drawRoadUsers(data, year) {
     .attr('class', 'bar')
     .attr('y', d => y(d.road_user))
     .attr('height', y.bandwidth()).attr('rx', 2)
-    .attr('fill', (_, i) => C.seq(i / (rows.length - 1)))
+    .attr('fill', d => C.roadUser[d.road_user] || C.orange)
     .attr('opacity', 0.82)
     .attr('x', 0).attr('width', 0)
     .on('mouseover', (e, d) => {
@@ -603,6 +603,71 @@ function drawFNTrend(data) {
   g.transition().delay(2300).duration(400).style('opacity', 1);
 }
 
+/*CHART 6c — FN vs Non-Indigenous by Counterparty (grouped bar) */
+const CP_LABEL = {
+  'Car, pick-up truck or van':        'Car / Truck',
+  'Fixed or stationary object':       'Fixed Object',
+  'Non-collision transport accident': 'Non-collision',
+  'Other':                            'Other',
+};
+
+function drawFNCounterparty(data, year) {
+  const rows = data.filter(d => d.year === year);
+  const cats = ['Car, pick-up truck or van', 'Fixed or stationary object',
+                'Non-collision transport accident', 'Other'];
+  const statuses = ['First Nations people', 'Non-Indigenous'];
+
+  const w = cw('chart-fn-counterparty');
+  const h = Math.round(Math.min(320, w * 0.38));
+  const svg = makeSVG('chart-fn-counterparty', w, h);
+
+  const x0 = d3.scaleBand().domain(cats).range([0, w])
+    .paddingInner(0.32).paddingOuter(0.1);
+  const x1 = d3.scaleBand().domain(statuses)
+    .range([0, x0.bandwidth()]).padding(0.08);
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(rows, d => d.val) * 1.12]).nice().range([h, 0]);
+
+  yGrid(svg, y, w);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x0).tickFormat(k => CP_LABEL[k]));
+  svg.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(y).tickFormat(d => d3.format(',')(d)));
+
+  const totals = {};
+  statuses.forEach(st => {
+    totals[st] = d3.sum(rows.filter(r => r.fn_status === st), r => r.val);
+  });
+
+  cats.forEach(cat => {
+    statuses.forEach(st => {
+      const d = rows.find(r => r.counterparty === cat && r.fn_status === st);
+      if (!d) return;
+      svg.append('rect')
+        .attr('x', x0(cat) + x1(st)).attr('y', h)
+        .attr('width', x1.bandwidth()).attr('height', 0).attr('rx', 2)
+        .attr('fill', C.fn[st]).attr('opacity', 0.82)
+        .on('mouseover', (e) => {
+          d3.select(e.currentTarget).attr('opacity', 1);
+          showTip(e, `${cat} — ${st}`, d.val,
+            `${d3.format('.1%')(d.val / totals[st])} of group total`);
+        })
+        .on('mousemove', moveTip)
+        .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', 0.82); hideTip(); })
+        .transition().duration(600).ease(d3.easeBackOut.overshoot(1.05))
+        .attr('y', y(d.val))
+        .attr('height', h - y(d.val));
+    });
+  });
+
+  document.getElementById('legend-fn-counterparty').innerHTML =
+    statuses.map(s =>
+      `<div class="legend-item">
+        <div class="legend-swatch" style="background:${C.fn[s]}"></div>
+        <span>${s}</span>
+      </div>`).join('');
+}
+
 /*SCROLL REVEAL*/
 const revealObserver = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
@@ -636,21 +701,24 @@ function animateCounter(el, target, duration = 2000) {
 async function main() {
   try {
     /* load everything in parallel */
-    const [trend, roadUser, ageSex, stateData, remoteness, fnRemote] =
+    const [trend, roadUser, ageSex, stateData, remoteness, fnRemote, fnCounterparty] =
       await Promise.all([
-        d3.csv('../data/National/national_annual_trend.csv',
-          d => ({ year: +d.year, hospitalisations: +d.hospitalisations })),
-        d3.csv('../data/National/national_by_road_user.csv',
-          d => ({ year: +d.year, road_user: d.road_user, hospitalisations: +d.hospitalisations })),
-        d3.csv('../data/National/national_by_age_sex.csv',
-          d => ({ year: +d.year, age_group: d.age_group, sex: d.sex, hospitalisations: +d.hospitalisations })),
-        d3.csv('../data/State/state_annual.csv',
-          d => ({ year: +d.year, state: d.state, cases: +d['Sum(cases)'] })),
         d3.csv('../data/National/national_by_remoteness.csv',
-          d => ({ year: +d.year, remoteness: d.remoteness, hospitalisations: +d.hospitalisations })),
+          d => ({ year: +d['Calendar year'], hospitalisations: +d['Sum(Hospitalisations)'] })),
+        d3.csv('../data/National/national_by_road_user.csv',
+          d => ({ year: +d['Calendar year'], road_user: d['Road user'], hospitalisations: +d['Sum(Hospitalisations)'] })),
+        d3.csv('../data/National/national_by_age_sex.csv',
+          d => ({ year: +d['Calendar year'], age_group: d['Age group'], sex: d['Sex'], hospitalisations: +d['Sum(Hospitalisations)'] })),
+        d3.csv('../data/State/state_annual.csv',
+          d => ({ year: +d['calendar year'], state: d['state or territory'], cases: +d['Sum(count of cases excluding died in hospitals within 30 days)'] })),
+        d3.csv('../data/National/national_annual_trend.csv',
+          d => ({ year: +d['Calendar year'], remoteness: d['ABS remoteness area'], hospitalisations: +d['Sum(Hospitalisations)'] })),
         d3.csv('../data/FN/fn_by_remoteness.csv',
-          d => ({ year: +d.year, fn_status: d.fn_status, remoteness: d.remoteness,
-                  val: +d['Sum(hospitalisations)'] })),
+          d => ({ year: +d['Calendar year'], fn_status: d['First Nations status'], remoteness: d['ABS remoteness area'],
+                  val: +d['Sum(Hospitalisations)'] })),
+        d3.csv('../data/FN/fn_by_counterparty.csv',
+          d => ({ year: +d['Calendar year'], fn_status: d['First Nations status'],
+                  counterparty: d['Counterparty'], val: +d['Sum(Hospitalisations)'] })),
       ]);
 
     const years = [...new Set(trend.map(d => d.year))].sort((a, b) => a - b);
@@ -673,6 +741,7 @@ async function main() {
     drawAgeSex(ageSex, latest);
     drawStates(stateData, latest);
     drawFN(fnRemote, latest);
+    drawFNCounterparty(fnCounterparty, latest);
 
     d3.select('#global-year').on('change', function () {
       const yr = +this.value;
@@ -681,6 +750,7 @@ async function main() {
       drawAgeSex(ageSex, yr);
       drawStates(stateData, yr);
       drawFN(fnRemote, yr);
+      drawFNCounterparty(fnCounterparty, yr);
     });
 
     /* Responsive resize */
@@ -696,6 +766,7 @@ async function main() {
         drawStates(stateData, yr);
         drawRemoteness(remoteness);
         drawFN(fnRemote, yr);
+        drawFNCounterparty(fnCounterparty, yr);
         drawFNTrend(fnRemote);
       }, 220);
     });
