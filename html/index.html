@@ -70,6 +70,15 @@
     </div>
   </section>
 
+  <!-- Global year selector -->
+  <div class="year-control-bar" id="year-control-bar">
+    <div class="container year-control-inner">
+      <span class="year-control-label">Snapshot year</span>
+      <select id="global-year" class="chart-select chart-select--lg"></select>
+      
+    </div>
+  </div>
+
   <!-- 01 — National Trend -->
   <section id="national-trend" class="chart-section">
     <div class="container">
@@ -95,14 +104,6 @@
     </div>
   </section>
 
-  <!-- Global year selector -->
-  <div class="year-control-bar" id="year-control-bar">
-    <div class="container year-control-inner">
-      <span class="year-control-label">Snapshot year</span>
-      <select id="global-year" class="chart-select chart-select--lg"></select>
-      <span class="year-control-note">— syncs charts 02 · 03 · 04 · 06</span>
-    </div>
-  </div>
 
   <!-- 02 — Road Users -->
   <section id="road-users" class="chart-section alt-bg">
@@ -125,6 +126,7 @@
           <span class="chart-label">Hospitalisations by Road User Type</span>
           <span class="chart-source">Source: BITRE</span>
         </div>
+        <p class="chart-note">▲ / ▼ next to each bar shows the <strong>% change vs the prior year</strong>. Use the year selector above to step through 2011–2021.</p>
         <div id="chart-road-users" class="chart-container"></div>
       </div>
     </div>
@@ -181,6 +183,7 @@
           <span class="chart-label">Hospitalisations by State / Territory</span>
           <span class="chart-source">Source: BITRE</span>
         </div>
+        <p class="chart-note">▲ / ▼ next to each bar shows the <strong>% change vs the prior year</strong>. Use the year selector above to step through 2011–2021.</p>
         <div id="chart-states" class="chart-container"></div>
       </div>
     </div>
