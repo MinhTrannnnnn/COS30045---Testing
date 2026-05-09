@@ -703,7 +703,7 @@ async function main() {
     /* load everything in parallel */
     const [trend, roadUser, ageSex, stateData, remoteness, fnRemote, fnCounterparty] =
       await Promise.all([
-        d3.csv('../data/National/national_by_remoteness.csv',
+        d3.csv('../data/National/national_annual_trend.csv',
           d => ({ year: +d['Calendar year'], hospitalisations: +d['Sum(Hospitalisations)'] })),
         d3.csv('../data/National/national_by_road_user.csv',
           d => ({ year: +d['Calendar year'], road_user: d['Road user'], hospitalisations: +d['Sum(Hospitalisations)'] })),
@@ -711,7 +711,7 @@ async function main() {
           d => ({ year: +d['Calendar year'], age_group: d['Age group'], sex: d['Sex'], hospitalisations: +d['Sum(Hospitalisations)'] })),
         d3.csv('../data/State/state_annual.csv',
           d => ({ year: +d['calendar year'], state: d['state or territory'], cases: +d['Sum(count of cases excluding died in hospitals within 30 days)'] })),
-        d3.csv('../data/National/national_annual_trend.csv',
+        d3.csv('../data/National/national_by_remoteness.csv',
           d => ({ year: +d['Calendar year'], remoteness: d['ABS remoteness area'], hospitalisations: +d['Sum(Hospitalisations)'] })),
         d3.csv('../data/FN/fn_by_remoteness.csv',
           d => ({ year: +d['Calendar year'], fn_status: d['First Nations status'], remoteness: d['ABS remoteness area'],
