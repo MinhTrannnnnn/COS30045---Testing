@@ -21,8 +21,8 @@
       <li><a href="#national-trend">Trend</a></li>
       <li><a href="#road-users">Road Users</a></li>
       <li><a href="#age-gender">Age &amp; Gender</a></li>
-      <li><a href="#states">States</a></li>
       <li><a href="#remoteness">Remoteness</a></li>
+      <li><a href="#states">States</a></li>
       <li><a href="#first-nations">First Nations</a></li>
     </ul>
   </nav>
@@ -75,7 +75,16 @@
     <div class="container year-control-inner">
       <span class="year-control-label">Snapshot year</span>
       <select id="global-year" class="chart-select chart-select--lg"></select>
-      
+      <div id="filter-chips" class="filter-chips"></div>
+      <button id="clear-all-filters" class="clear-filters-btn" style="display:none" onclick="clearAllFilters()">✕ Clear all</button>
+    </div>
+  </div>
+
+  <!-- Cross-filterable sector: Charts 01–04 -->
+  <div class="sector-header">
+    <div class="container sector-header-inner">
+      <span class="sector-label">National Overview &nbsp;·&nbsp; Charts 01 – 04</span>
+      <span class="sector-note">Cross-filter applies to Charts 01–04 only &nbsp;·&nbsp; Filterable dimensions: Road User, Age Group, Sex, Remoteness &nbsp;·&nbsp; Year is controlled separately by the selector above &nbsp;·&nbsp; Click Male / Female in the Age &amp; Sex legend to filter by sex</span>
     </div>
   </div>
 
@@ -158,42 +167,11 @@
     </div>
   </section>
 
-  <!-- 04 — States -->
-  <section id="states" class="chart-section alt-bg">
+  <!-- 04 — Remoteness -->
+  <section id="remoteness" class="chart-section alt-bg">
     <div class="container">
       <div class="section-header">
         <div class="section-number">04</div>
-        <div>
-          <h2 class="section-title">State by State: Raw Numbers &amp; Context</h2>
-          <p class="section-desc">
-            New South Wales and Victoria dominate in absolute terms, reflecting their larger populations.
-            Direct comparisons without per-capita normalisation can be misleading — the Northern Territory's
-            figures represent a significantly higher rate relative to its population size. This visualisation
-            presents <em>absolute counts</em> only; per-capita analysis is beyond the current dataset scope.
-          </p>
-          <p class="section-desc" style="margin-top:0.5rem;font-size:0.85em;opacity:0.7;">
-            <strong>Note:</strong> State figures count cases excluding patients who died in hospital within
-            30 days of admission — a stricter measure than the national hospitalisation totals used in
-            charts 01–03 and 05–06. Values are not directly comparable across sections.
-          </p>
-        </div>
-      </div>
-      <div class="chart-card reveal">
-        <div class="chart-title-bar">
-          <span class="chart-label">Hospitalisations by State / Territory</span>
-          <span class="chart-source">Source: BITRE</span>
-        </div>
-        <p class="chart-note">▲ / ▼ next to each bar shows the <strong>% change vs the prior year</strong>. Use the year selector above to step through 2011–2021.</p>
-        <div id="chart-states" class="chart-container"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 05 — Remoteness -->
-  <section id="remoteness" class="chart-section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-number">05</div>
         <div>
           <h2 class="section-title">Urban, Regional, Remote: Where Crashes Happen</h2>
           <p class="section-desc">
@@ -211,6 +189,46 @@
         </div>
         <div id="chart-remoteness" class="chart-container"></div>
         <div class="chart-legend" id="legend-remoteness"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dataset boundary divider -->
+  <div class="dataset-divider">
+    <div class="container dataset-divider-inner">
+      <span class="divider-line"></span>
+      <span class="divider-label">Different dataset &nbsp;·&nbsp; Charts below are independent except for the year selector</span>
+      <span class="divider-line"></span>
+    </div>
+  </div>
+
+  <!-- 05 — States -->
+  <section id="states" class="chart-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">05</div>
+        <div>
+          <h2 class="section-title">State by State: Raw Numbers &amp; Context</h2>
+          <p class="section-desc">
+            New South Wales and Victoria dominate in absolute terms, reflecting their larger populations.
+            Direct comparisons without per-capita normalisation can be misleading — the Northern Territory's
+            figures represent a significantly higher rate relative to its population size. This visualisation
+            presents <em>absolute counts</em> only; per-capita analysis is beyond the current dataset scope.
+          </p>
+          <p class="section-desc" style="margin-top:0.5rem;font-size:0.85em;opacity:0.7;">
+            <strong>Note:</strong> State figures count cases excluding patients who died in hospital within
+            30 days of admission — a stricter measure than the national hospitalisation totals used in
+            charts 01–04 and 06. Values are not directly comparable across sections.
+          </p>
+        </div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-title-bar">
+          <span class="chart-label">Hospitalisations by State / Territory</span>
+          <span class="chart-source">Source: BITRE</span>
+        </div>
+        <p class="chart-note">▲ / ▼ next to each bar shows the <strong>% change vs the prior year</strong>. Use the year selector above to step through 2011–2021.</p>
+        <div id="chart-states" class="chart-container"></div>
       </div>
     </div>
   </section>
