@@ -513,7 +513,8 @@ function drawRemoteness(data) {
     const clipRect = defs.append('clipPath').attr('id', clipId)
       .append('rect').attr('x', 0).attr('y', 0).attr('width', 0).attr('height', h + 20);
 
-    const remOpacity = !filters.remoteness || filters.remoteness === layer.key ? 0.72 : 0.15;
+    const isActive = !filters.remoteness || filters.remoteness === layer.key;
+    const remOpacity = isActive ? 0.72 : 0.2;
     svg.append('path').datum(layer)
       .attr('fill', C.remoteness[layer.key]).attr('opacity', remOpacity)
       .style('cursor', 'pointer')
