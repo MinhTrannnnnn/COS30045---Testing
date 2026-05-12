@@ -74,9 +74,9 @@
   <div class="year-control-bar" id="year-control-bar">
     <div class="container year-control-inner">
       <span class="year-control-label">Snapshot year</span>
-      <select id="global-year" class="chart-select chart-select--lg"></select>
-      <div id="filter-chips" class="filter-chips"></div>
-      <button id="clear-all-filters" class="clear-filters-btn" style="display:none" onclick="clearAllFilters()">✕ Clear all</button>
+      <select id="global-year" class="chart-select chart-select--lg" aria-label="Select snapshot year"></select>
+      <div id="filter-chips" class="filter-chips" aria-live="polite" aria-label="Active filters"></div>
+      <button id="clear-all-filters" class="clear-filters-btn" aria-label="Clear all active filters" style="display:none" onclick="clearAllFilters()">✕ Clear all</button>
     </div>
   </div>
 

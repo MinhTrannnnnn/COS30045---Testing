@@ -26,7 +26,8 @@ const C = {
     'Regional':     '#ff7700',
     'Remote':       '#ffcc00',
   },
-  sex: { Male: '#ff2600', Female: '#ffaa00' },
+  /* Male keeps dashboard red; Female uses cyan — distinguishable under deuteranopia */
+  sex: { Male: '#ff2600', Female: '#4cc9f0' },
   fn:  { 'First Nations people': '#ff2600', 'Non-Indigenous': '#ff9900' },
 };
 
@@ -58,8 +59,12 @@ function hideTip() { tip.style('opacity', 0); }
 /* SVG factory */
 function makeSVG(id, w, h, ml = M.left, mt = M.top) {
   d3.select(`#${id}`).selectAll('svg').remove();
+  const labelEl = document.getElementById(id)?.closest('.chart-card')?.querySelector('.chart-label');
+  const label   = labelEl ? labelEl.textContent : id;
   return d3.select(`#${id}`)
     .append('svg')
+    .attr('role', 'img')
+    .attr('aria-label', label)
     .attr('width',  w + ml + M.right)
     .attr('height', h + mt + M.bottom)
     .append('g')
@@ -271,6 +276,7 @@ function drawRoadUsers(data, year) {
 
   d3.select('#chart-road-users').selectAll('svg').remove();
   const svg = d3.select('#chart-road-users').append('svg')
+    .attr('role', 'img').attr('aria-label', 'Hospitalisations by Road User Type')
     .attr('width', totalW).attr('height', h + mt + mb)
     .append('g').attr('transform', `translate(${ml},${mt})`);
 
@@ -341,7 +347,7 @@ function drawRoadUsers(data, year) {
 const AGE_ORDER = ['0-7', '8-16', '17-25', '26-39', '40-64', '65-74', '75+'];
 
 function drawAgeSex(data, year) {
-  const rows = data.filter(d => d.year === year && d.age_group !== 'Missing');
+  const rows = data.filter(d => d.year === year);
   const w = cw('chart-age-sex');
   const h = Math.round(Math.min(340, w * 0.4));
   const svg = makeSVG('chart-age-sex', w, h);
@@ -396,7 +402,11 @@ function drawAgeSex(data, year) {
       const active = filters.sex === s;
       const dimmed = filters.sex && !active;
       return `<div class="legend-item legend-item--clickable"
+                   role="button" tabindex="0"
+                   aria-pressed="${active}"
+                   aria-label="${active ? 'Remove' : 'Filter by'} ${s}"
                    onclick="toggleSexFilter('${s}')"
+                   onkeydown="if(event.key==='Enter'||event.key===' '){toggleSexFilter('${s}');event.preventDefault();}"
                    style="cursor:pointer;opacity:${dimmed ? 0.3 : 1};
                           outline:${active ? '1px solid ' + C.sex[s] : 'none'};
                           border-radius:3px;padding:2px 6px;">
@@ -421,6 +431,7 @@ function drawStates(data, year) {
 
   d3.select('#chart-states').selectAll('svg').remove();
   const svg = d3.select('#chart-states').append('svg')
+    .attr('role', 'img').attr('aria-label', 'Hospitalisations by State / Territory')
     .attr('width', totalW).attr('height', h + mt + mb)
     .append('g').attr('transform', `translate(${ml},${mt})`);
 
@@ -809,7 +820,7 @@ function updateFilterBadges() {
   if (el) {
     el.innerHTML = active.map(([k, v]) =>
       `<span class="filter-chip">${labelMap[k]}: <strong>${v}</strong>` +
-      ` <button class="chip-x" onclick="clearFilter('${k}')">✕</button></span>`
+      ` <button class="chip-x" aria-label="Remove ${labelMap[k]} filter" onclick="clearFilter('${k}')">✕</button></span>`
     ).join('');
   }
   const btn = document.getElementById('clear-all-filters');
@@ -854,8 +865,8 @@ async function main() {
                 counterparty: d['Counterparty'], val: +d['Sum(Hospitalisations)'] })),
     ]);
 
-    /* store raw for cross-filter engine */
-    rawData = raw;
+    /* store raw for cross-filter engine — drop rows with unclassified dimensions */
+    rawData = raw.filter(d => d.remoteness !== 'Missing' && d.age_group !== 'Missing');
     const years = [...new Set(raw.map(d => d.year))].sort((a, b) => a - b);
     const latest = Math.max(...years);
     currentYear = latest;
