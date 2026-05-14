@@ -210,7 +210,7 @@ function drawTrend(data) {
     g.transition().delay(2600).duration(400).style('opacity', 1);
   };
   if (!hasFilter) {
-    ann(2019, 'Peak: 39,866', -36);
+    ann(2021, 'Peak: 38,875', -36);
     ann(2020, 'COVID-19 ↓', -36);
   }
 
