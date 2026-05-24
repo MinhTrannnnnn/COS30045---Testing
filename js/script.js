@@ -10,16 +10,16 @@ const C = {
   dim:    '#cc2000',
   // sequential scale for ordered bars (red → amber)
   seq: i => d3.interpolate('#ff2600', '#ffaa00')(i),
-  // road user fixed colours
+  // road user fixed colours — distinct enough to tell apart on dark bg
   roadUser: {
     'Car occupant':                    '#ff2600',
-    'Motorcyclist':                    '#ff4d00',
-    'Pedal cyclist':                   '#ff7300',
-    'Pedestrian':                      '#ff9a00',
-    'Pick-up truck or van occupant':   '#c41e00',
-    'Bus occupant':                    '#941600',
-    'Heavy transport':                 '#6b1000',
-    'Other or unknown':                '#4a0b00',
+    'Motorcyclist':                    '#ff6600',
+    'Pedal cyclist':                   '#ffcc00',
+    'Pedestrian':                      '#4cc9f0',
+    'Pick-up truck or van occupant':   '#aa44ff',
+    'Bus occupant':                    '#44ddaa',
+    'Heavy transport':                 '#ff88cc',
+    'Other or unknown':                '#888899',
   },
   remoteness: {
     'Major Cities': '#ff2600',
@@ -44,7 +44,7 @@ function showTip(e, title, value, extra = '') {
   tip.style('opacity', 1)
     .html(
       `<div class="tt-title">${title}</div>` +
-      `<div class="tt-value">${d3.format(',')(value)}</div>` +
+      `<div class="tt-value">${typeof value === 'string' ? value : d3.format(',')(value)}</div>` +
       (extra ? `<div class="tt-extra">${extra}</div>` : '')
     );
   moveTip(e);
@@ -97,6 +97,29 @@ function fillSelect(id, vals, def) {
   if (def != null) s.property('value', String(def));
 }
 
+/* axis label helpers */
+function addYLabel(svg, label, h) {
+  svg.append('text')
+    .attr('transform', `rotate(-90) translate(${-h / 2}, ${-M.left + 14})`)
+    .attr('text-anchor', 'middle')
+    .attr('fill', 'var(--text-3)')
+    .attr('font-size', '10px')
+    .attr('font-family', "'JetBrains Mono', monospace")
+    .attr('letter-spacing', '0.06em')
+    .text(label);
+}
+
+function addXLabelHBar(svg, label, w, h, mb) {
+  svg.append('text')
+    .attr('x', w / 2).attr('y', h + mb - 6)
+    .attr('text-anchor', 'middle')
+    .attr('fill', 'var(--text-3)')
+    .attr('font-size', '10px')
+    .attr('font-family', "'JetBrains Mono', monospace")
+    .attr('letter-spacing', '0.06em')
+    .text(label);
+}
+
 /* Chart 1 & 5 year markers — updated by global year selector */
 let trendRef = null;
 let remoRef  = null;
@@ -105,6 +128,11 @@ let remoRef  = null;
 let rawData     = null;
 let currentYear = null;
 const filters   = { road_user: null, age_group: null, sex: null, remoteness: null };
+
+/* FN chart state */
+let fnMode          = 'absolute'; // 'absolute' | 'proportion'
+let fnRemoteData    = null;
+let fnCounterData   = null;
 
 function updateTrendMarker(year) {
   if (!trendRef) return;
@@ -133,12 +161,12 @@ function updateTrendMarker(year) {
 function drawTrend(data) {
   const w = cw('chart-trend');
   const h = Math.round(Math.min(360, w * 0.42));
-  const svg = makeSVG('chart-trend', w, h);
+  const svg = makeSVG('chart-trend', w, h, M.left, 48);
 
   const hasFilter = Object.values(filters).some(v => v != null);
   const x = d3.scaleLinear().domain([2011, 2021]).range([0, w]);
   const y = d3.scaleLinear()
-    .domain([hasFilter ? 0 : 29000, d3.max(data, d => d.hospitalisations) * 1.06])
+    .domain([0, d3.max(data, d => d.hospitalisations) * 1.08])
     .nice().range([h, 0]);
 
   yGrid(svg, y, w);
@@ -146,6 +174,7 @@ function drawTrend(data) {
     .call(d3.axisBottom(x).tickFormat(d3.format('d')).ticks(11));
   svg.append('g').attr('class', 'axis')
     .call(d3.axisLeft(y).tickFormat(d => d3.format('.2s')(d)));
+  addYLabel(svg, 'HOSPITALISATIONS', h);
 
   /* gradient def */
   const defs = svg.append('defs');
@@ -178,14 +207,17 @@ function drawTrend(data) {
     .attr('stroke-dashoffset', 0);
 
   /* dots */
+  const base2011 = data.find(r => r.year === 2011)?.hospitalisations;
   svg.selectAll('.dot').data(data).join('circle')
     .attr('cx', d => x(d.year)).attr('cy', d => y(d.hospitalisations))
     .attr('r', 0).attr('fill', C.amber)
     .attr('stroke', C.red).attr('stroke-width', 1.5)
     .on('mouseover', (e, d) => {
       d3.select(e.currentTarget).transition().duration(120).attr('r', 7);
-      const chg = d3.format('+.1%')((d.hospitalisations - 34033) / 34033);
-      showTip(e, String(d.year), d.hospitalisations, `${chg} vs 2011`);
+      const extra = base2011 && d.year !== 2011
+        ? `${d3.format('+.1%')((d.hospitalisations - base2011) / base2011)} vs 2011`
+        : 'baseline year';
+      showTip(e, String(d.year), d.hospitalisations, extra);
     })
     .on('mousemove', moveTip)
     .on('mouseout', (e) => {
@@ -203,9 +235,11 @@ function drawTrend(data) {
       .attr('x1', x(yr)).attr('x2', x(yr))
       .attr('y1', y(d.hospitalisations) + dy).attr('y2', y(d.hospitalisations) - 2)
       .attr('stroke', C.red).attr('stroke-width', 1).attr('stroke-dasharray', '3,2');
+    const xPos = x(yr);
+    const anchor = xPos > w * 0.75 ? 'end' : xPos < w * 0.25 ? 'start' : 'middle';
     g.append('text')
-      .attr('x', x(yr)).attr('y', y(d.hospitalisations) + dy - 5)
-      .attr('text-anchor', 'middle').attr('fill', C.red)
+      .attr('x', xPos).attr('y', y(d.hospitalisations) + dy - 5)
+      .attr('text-anchor', anchor).attr('fill', C.red)
       .attr('font-size', '10px').attr('font-weight', '700').text(label);
     g.transition().delay(2600).duration(400).style('opacity', 1);
   };
@@ -269,7 +303,7 @@ function drawRoadUsers(data, year) {
   const container = document.getElementById('chart-road-users');
   const _cs1 = window.getComputedStyle(container);
   const totalW = container.clientWidth - parseFloat(_cs1.paddingLeft) - parseFloat(_cs1.paddingRight);
-  const ml = 180, mr = 80, mt = 10, mb = 6;
+  const ml = 180, mr = 80, mt = 10, mb = 30;
   const w = totalW - ml - mr;
   const bH = 34, gap = 8;
   const h = rows.length * (bH + gap) - gap;
@@ -287,6 +321,18 @@ function drawRoadUsers(data, year) {
   const y = d3.scaleBand()
     .domain(rows.map(d => d.road_user))
     .range([0, h]).padding(gap / (bH + gap));
+
+  /* vertical gridlines */
+  svg.append('g').attr('class', 'grid')
+    .attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).tickSize(-h).tickFormat(''))
+    .call(g => g.selectAll('line').attr('stroke', 'rgba(255,80,0,0.07)').attr('stroke-dasharray', '3,4'))
+    .call(g => g.select('.domain').remove());
+
+  /* x-axis with ticks + label */
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d => d3.format('.2s')(d)));
+  addXLabelHBar(svg, 'HOSPITALISATIONS', w, h, mb);
 
   /* y-axis labels */
   svg.append('g').attr('class', 'axis')
@@ -357,7 +403,7 @@ function drawAgeSex(data, year) {
   const x1 = d3.scaleBand().domain(['Male', 'Female'])
     .range([0, x0.bandwidth()]).padding(0.06);
   const y = d3.scaleLinear()
-    .domain([0, d3.max(rows, d => d.hospitalisations) * 1.12])
+    .domain([0, d3.max(rows, d => d.hospitalisations) * 1.22])
     .nice().range([h, 0]);
 
   yGrid(svg, y, w);
@@ -365,6 +411,7 @@ function drawAgeSex(data, year) {
     .call(d3.axisBottom(x0));
   svg.append('g').attr('class', 'axis')
     .call(d3.axisLeft(y).tickFormat(d => d3.format('.2s')(d)));
+  addYLabel(svg, 'HOSPITALISATIONS', h);
 
   const grouped = d3.group(rows, d => d.age_group);
 
@@ -381,18 +428,34 @@ function drawAgeSex(data, year) {
         .attr('fill', C.sex[sex]).attr('opacity', agOpacity)
         .style('cursor', 'pointer')
         .on('click', () => {
-          filters.age_group = filters.age_group === age ? null : age;
+          const bothActive = filters.age_group === age && filters.sex === sex;
+          filters.age_group = bothActive ? null : age;
+          filters.sex = bothActive ? null : sex;
           redrawNational(currentYear);
         })
         .on('mouseover', (e) => {
           d3.select(e.currentTarget).attr('opacity', 1);
-          showTip(e, `${age} — ${sex}`, d.hospitalisations);
+          showTip(e, `${age} — ${sex}`, d.hospitalisations, 'Click to filter by age + sex');
         })
         .on('mousemove', moveTip)
         .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', agOpacity); hideTip(); })
-        .transition().duration(580).ease(d3.easeBackOut.overshoot(1.05))
+        .transition().duration(580).ease(d3.easeBackOut.overshoot(0.5))
         .attr('y', y(d.hospitalisations))
         .attr('height', h - y(d.hospitalisations));
+
+      /* value label above bar */
+      svg.append('text')
+        .attr('x', x0(age) + x1(sex) + x1.bandwidth() / 2)
+        .attr('y', h)
+        .attr('text-anchor', 'middle')
+        .attr('fill', C.sex[sex])
+        .attr('font-size', '8px')
+        .attr('font-family', "'JetBrains Mono', monospace")
+        .attr('opacity', 0)
+        .text(d3.format('.2s')(d.hospitalisations))
+        .transition().duration(580).ease(d3.easeBackOut.overshoot(0.5))
+        .attr('y', y(d.hospitalisations) - 4)
+        .attr('opacity', agOpacity);
     });
   });
 
@@ -424,7 +487,7 @@ function drawStates(data, year) {
   const container = document.getElementById('chart-states');
   const _cs2 = window.getComputedStyle(container);
   const totalW = container.clientWidth - parseFloat(_cs2.paddingLeft) - parseFloat(_cs2.paddingRight);
-  const ml = 52, mr = 80, mt = 8, mb = 6;
+  const ml = 52, mr = 80, mt = 8, mb = 45;
   const w = totalW - ml - mr;
   const bH = 38, gap = 7;
   const h = rows.length * (bH + gap) - gap;
@@ -440,6 +503,18 @@ function drawStates(data, year) {
   const y = d3.scaleBand()
     .domain(rows.map(d => d.state)).range([0, h])
     .padding(gap / (bH + gap));
+
+  /* vertical gridlines */
+  svg.append('g').attr('class', 'grid')
+    .attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).tickSize(-h).tickFormat(''))
+    .call(g => g.selectAll('line').attr('stroke', 'rgba(255,80,0,0.07)').attr('stroke-dasharray', '3,4'))
+    .call(g => g.select('.domain').remove());
+
+  /* x-axis with ticks + label */
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d => d3.format('.2s')(d)));
+  addXLabelHBar(svg, 'HOSPITALISATIONS (EXCL. IN-HOSPITAL DEATHS)', w, h, mb);
 
   svg.append('g').attr('class', 'axis')
     .call(d3.axisLeft(y).tickSize(0))
@@ -512,6 +587,7 @@ function drawRemoteness(data) {
     .call(d3.axisBottom(x).tickFormat(d3.format('d')).ticks(11));
   svg.append('g').attr('class', 'axis')
     .call(d3.axisLeft(y).tickFormat(d => d3.format('.2s')(d)));
+  addYLabel(svg, 'HOSPITALISATIONS', h);
 
   const area = d3.area()
     .x(d => x(d.data.year)).y0(d => y(d[0])).y1(d => y(d[1]))
@@ -547,22 +623,51 @@ function drawRemoteness(data) {
     clipRect.transition().duration(2000).ease(d3.easeCubicInOut).attr('width', w);
   });
 
-  /* legend */
+  /* legend — clickable to filter */
   document.getElementById('legend-remoteness').innerHTML =
-    keys.map(k =>
-      `<div class="legend-item">
+    keys.map(k => {
+      const active = filters.remoteness === k;
+      const dimmed = filters.remoteness && !active;
+      return `<div class="legend-item legend-item--clickable"
+                   role="button" tabindex="0"
+                   aria-pressed="${active}"
+                   onclick="toggleRemoFilter('${k}')"
+                   onkeydown="if(event.key==='Enter'||event.key===' '){toggleRemoFilter('${k}');event.preventDefault();}"
+                   style="cursor:pointer;opacity:${dimmed ? 0.3 : 1};
+                          outline:${active ? '1px solid ' + C.remoteness[k] : 'none'};
+                          border-radius:3px;padding:2px 6px;">
         <div class="legend-swatch" style="background:${C.remoteness[k]}"></div>
         <span>${k}</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
   remoRef = { svg, x, h };
 }
 
-/* CHART 6a — FN vs Non-Indigenous by Remoteness  (grouped bar)*/
+/* CHART 6a — FN vs Non-Indigenous by Remoteness  (grouped bar, proportion toggle)*/
 function drawFN(data, year) {
   const rows = data.filter(d => d.year === year);
   const remCats = ['Major Cities', 'Regional', 'Remote'];
   const statuses = ['First Nations people', 'Non-Indigenous'];
+
+  const groupTotals = {};
+  statuses.forEach(st => {
+    groupTotals[st] = d3.sum(rows.filter(r => r.fn_status === st), r => r.val) || 1;
+  });
+  const getValue = d => fnMode === 'proportion' ? d.val / groupTotals[d.fn_status] : d.val;
+  const allVals = rows.map(getValue);
+
+  /* sync toggle button state */
+  const btn = document.getElementById('fn-remoteness-toggle');
+  if (btn) {
+    btn.textContent = fnMode === 'proportion' ? 'Abs Count' : '% of Group';
+    btn.classList.toggle('active', fnMode === 'proportion');
+    btn.onclick = () => {
+      fnMode = fnMode === 'absolute' ? 'proportion' : 'absolute';
+      drawFN(fnRemoteData, currentYear);
+      drawFNCounterparty(fnCounterData, currentYear);
+    };
+  }
 
   const w = cw('chart-fn');
   const h = Math.round(Math.min(320, w * 0.38));
@@ -573,31 +678,36 @@ function drawFN(data, year) {
   const x1 = d3.scaleBand().domain(statuses)
     .range([0, x0.bandwidth()]).padding(0.08);
   const y = d3.scaleLinear()
-    .domain([0, d3.max(rows, d => d.val) * 1.12]).nice().range([h, 0]);
+    .domain([0, d3.max(allVals) * 1.12]).nice().range([h, 0]);
 
   yGrid(svg, y, w);
   svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
     .call(d3.axisBottom(x0));
   svg.append('g').attr('class', 'axis')
-    .call(d3.axisLeft(y).tickFormat(d => d3.format(',')(d)));
+    .call(d3.axisLeft(y).tickFormat(d => fnMode === 'proportion' ? d3.format('.0%')(d) : d3.format(',')(d)));
+  addYLabel(svg, fnMode === 'proportion' ? '% OF GROUP TOTAL' : 'HOSPITALISATIONS', h);
 
   remCats.forEach(rem => {
     statuses.forEach(st => {
       const d = rows.find(r => r.remoteness === rem && r.fn_status === st);
       if (!d) return;
+      const val = getValue(d);
       svg.append('rect')
         .attr('x', x0(rem) + x1(st)).attr('y', h)
         .attr('width', x1.bandwidth()).attr('height', 0).attr('rx', 2)
         .attr('fill', C.fn[st]).attr('opacity', 0.82)
         .on('mouseover', (e) => {
           d3.select(e.currentTarget).attr('opacity', 1);
-          showTip(e, `${rem} — ${st}`, d.val);
+          const extra = fnMode === 'proportion'
+            ? `${d3.format('.1%')(val)} of ${st === 'First Nations people' ? 'FN' : 'non-Indigenous'} total`
+            : `${d3.format('.1%')(d.val / groupTotals[st])} of group total`;
+          showTip(e, `${rem} — ${st}`, fnMode === 'proportion' ? d3.format('.1%')(val) : d.val, extra);
         })
         .on('mousemove', moveTip)
         .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', 0.82); hideTip(); })
-        .transition().duration(600).ease(d3.easeBackOut.overshoot(1.05))
-        .attr('y', y(d.val))
-        .attr('height', h - y(d.val));
+        .transition().duration(600).ease(d3.easeBackOut.overshoot(0.5))
+        .attr('y', y(val))
+        .attr('height', h - y(val));
     });
   });
 
@@ -642,6 +752,7 @@ function drawFNTrend(data) {
     .call(d3.axisBottom(x).tickFormat(d3.format('d')).ticks(11));
   svg.append('g').attr('class', 'axis')
     .call(d3.axisLeft(y).tickFormat(d => d3.format(',')(d)));
+  addYLabel(svg, 'HOSPITALISATIONS', h);
 
   const line = d3.line().x(d => x(d.year)).y(d => y(d.fn))
     .curve(d3.curveCatmullRom.alpha(0.5));
@@ -692,6 +803,20 @@ function drawFNCounterparty(data, year) {
                 'Non-collision transport accident', 'Other'];
   const statuses = ['First Nations people', 'Non-Indigenous'];
 
+  const groupTotals = {};
+  statuses.forEach(st => {
+    groupTotals[st] = d3.sum(rows.filter(r => r.fn_status === st), r => r.val) || 1;
+  });
+  const getValue = d => fnMode === 'proportion' ? d.val / groupTotals[d.fn_status] : d.val;
+  const allVals = rows.map(getValue);
+
+  /* sync toggle button */
+  const btn = document.getElementById('fn-counterparty-toggle');
+  if (btn) {
+    btn.textContent = fnMode === 'proportion' ? 'Abs Count' : '% of Group';
+    btn.classList.toggle('active', fnMode === 'proportion');
+  }
+
   const w = cw('chart-fn-counterparty');
   const h = Math.round(Math.min(320, w * 0.38));
   const svg = makeSVG('chart-fn-counterparty', w, h);
@@ -701,37 +826,35 @@ function drawFNCounterparty(data, year) {
   const x1 = d3.scaleBand().domain(statuses)
     .range([0, x0.bandwidth()]).padding(0.08);
   const y = d3.scaleLinear()
-    .domain([0, d3.max(rows, d => d.val) * 1.12]).nice().range([h, 0]);
+    .domain([0, d3.max(allVals) * 1.12]).nice().range([h, 0]);
 
   yGrid(svg, y, w);
   svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
     .call(d3.axisBottom(x0).tickFormat(k => CP_LABEL[k]));
   svg.append('g').attr('class', 'axis')
-    .call(d3.axisLeft(y).tickFormat(d => d3.format(',')(d)));
-
-  const totals = {};
-  statuses.forEach(st => {
-    totals[st] = d3.sum(rows.filter(r => r.fn_status === st), r => r.val);
-  });
+    .call(d3.axisLeft(y).tickFormat(d => fnMode === 'proportion' ? d3.format('.0%')(d) : d3.format(',')(d)));
+  addYLabel(svg, fnMode === 'proportion' ? '% OF GROUP TOTAL' : 'HOSPITALISATIONS', h);
 
   cats.forEach(cat => {
     statuses.forEach(st => {
       const d = rows.find(r => r.counterparty === cat && r.fn_status === st);
       if (!d) return;
+      const val = getValue(d);
       svg.append('rect')
         .attr('x', x0(cat) + x1(st)).attr('y', h)
         .attr('width', x1.bandwidth()).attr('height', 0).attr('rx', 2)
         .attr('fill', C.fn[st]).attr('opacity', 0.82)
         .on('mouseover', (e) => {
           d3.select(e.currentTarget).attr('opacity', 1);
-          showTip(e, `${cat} — ${st}`, d.val,
-            `${d3.format('.1%')(d.val / totals[st])} of group total`);
+          const extra = `${d3.format('.1%')(d.val / groupTotals[st])} of group total`;
+          showTip(e, `${CP_LABEL[cat]} — ${st}`,
+            fnMode === 'proportion' ? d3.format('.1%')(val) : d.val, extra);
         })
         .on('mousemove', moveTip)
         .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', 0.82); hideTip(); })
-        .transition().duration(600).ease(d3.easeBackOut.overshoot(1.05))
-        .attr('y', y(d.val))
-        .attr('height', h - y(d.val));
+        .transition().duration(600).ease(d3.easeBackOut.overshoot(0.5))
+        .attr('y', y(val))
+        .attr('height', h - y(val));
     });
   });
 
@@ -842,6 +965,11 @@ window.clearAllFilters = function() {
   redrawNational(currentYear);
 };
 
+window.toggleRemoFilter = function(k) {
+  filters.remoteness = filters.remoteness === k ? null : k;
+  redrawNational(currentYear);
+};
+
 /* MAIN — load all data, draw charts, wire selectors */
 async function main() {
   try {
@@ -867,6 +995,8 @@ async function main() {
 
     /* store raw for cross-filter engine — drop rows with unclassified dimensions */
     rawData = raw.filter(d => d.remoteness !== 'Missing' && d.age_group !== 'Missing');
+    fnRemoteData  = fnRemote;
+    fnCounterData = fnCounterparty;
     const years = [...new Set(raw.map(d => d.year))].sort((a, b) => a - b);
     const latest = Math.max(...years);
     currentYear = latest;
@@ -885,6 +1015,23 @@ async function main() {
     drawStates(stateData, latest);
     drawFN(fnRemote, latest);
     drawFNCounterparty(fnCounterparty, latest);
+
+    /* Hamburger nav toggle */
+    const hamburger = document.getElementById('hamburger');
+    const navLinks  = document.getElementById('nav-links');
+    if (hamburger && navLinks) {
+      hamburger.addEventListener('click', () => {
+        const expanded = hamburger.getAttribute('aria-expanded') === 'true';
+        hamburger.setAttribute('aria-expanded', String(!expanded));
+        navLinks.classList.toggle('open', !expanded);
+      });
+      navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          hamburger.setAttribute('aria-expanded', 'false');
+          navLinks.classList.remove('open');
+        });
+      });
+    }
 
     d3.select('#global-year').on('change', function () {
       currentYear = +this.value;

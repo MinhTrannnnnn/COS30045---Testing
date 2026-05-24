@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
 
@@ -17,7 +17,7 @@
   <!-- Navigation -->
   <nav class="navbar" id="navbar">
     <div class="nav-brand">ROAD TRAUMA AUSTRALIA</div>
-    <ul class="nav-links">
+    <ul class="nav-links" id="nav-links">
       <li><a href="#national-trend">Trend</a></li>
       <li><a href="#road-users">Road Users</a></li>
       <li><a href="#age-gender">Age &amp; Gender</a></li>
@@ -25,6 +25,9 @@
       <li><a href="#states">States</a></li>
       <li><a href="#first-nations">First Nations</a></li>
     </ul>
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 
   <!-- Hero -->
@@ -253,6 +256,7 @@
         <div class="chart-title-bar">
           <span class="chart-label">First Nations vs Non-Indigenous: Hospitalisations by Remoteness</span>
           <span class="chart-source">Source: BITRE</span>
+          <button class="chart-btn-toggle" id="fn-remoteness-toggle" aria-label="Toggle absolute / proportion view">% of Group</button>
         </div>
         <div id="chart-fn" class="chart-container"></div>
         <div class="chart-legend" id="legend-fn"></div>
@@ -262,6 +266,7 @@
         <div class="chart-title-bar">
           <span class="chart-label">How Crashes Happen: Counterparty Type</span>
           <span class="chart-source">Source: BITRE</span>
+          <button class="chart-btn-toggle" id="fn-counterparty-toggle" aria-label="Toggle absolute / proportion view">% of Group</button>
         </div>
         <div id="chart-fn-counterparty" class="chart-container"></div>
         <div class="chart-legend" id="legend-fn-counterparty"></div>
