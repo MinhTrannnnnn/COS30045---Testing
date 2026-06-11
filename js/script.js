@@ -1,4 +1,26 @@
+/*
+  AI USE SUMMARY — script.js
+   COS30045 - Team dv_13_t_05
+   AI tool used: [Cursor / GitHub Copilot ]
+ 
+  AI was used to assist with the following areas:
+ 1. Animated line draw via stroke-dashoffset (Chart 01, line ~196)
+ 2. Staggered dot appearance after line draw (Chart 01, line ~229)
+ 3. Fade-in for peak/COVID annotations (Chart 01, line ~248)
+ 4. Fade-in for regulation-change break markers (Chart 01, line ~270)
+ 5. Horizontal bar grow animation from zero (Chart 02, line ~374)
+ 6. Fade-in for value/delta labels after bars (Chart 02, line ~399)
+ 7. Grouped bar overshoot entrance animation (Chart 03, line ~454)
+ 8. State bar grow animation on year change (Chart 04, line ~551)
+ 9. Clip-path reveal animation for stacked areas (Chart 05, line ~639)
+ 10. First Nations trend line stroke-dashoffset animation (Chart 06b, line ~782)
+ 
+11. Tooltip scroll-hide fix — hideTip() on scroll so tooltips do not linger after user scrolls away (scroll listener, line ~917)
+ 12. Cross-filter duplication explanation — AI identified that applying each filter to its own controlling chart causes it to collapse to one bar; fix is filteredExcept() so each chart sees all data except its own dimension (line ~942)
 
+   All other code — data loading, D3 bindings, scales, axes,
+   accessibility attributes, and responsive resize — was written without AI assistance.
+ */
 
 'use strict';
 
@@ -102,7 +124,7 @@ function addYLabel(svg, label, h) {
   svg.append('text')
     .attr('transform', `rotate(-90) translate(${-h / 2}, ${-M.left + 14})`)
     .attr('text-anchor', 'middle')
-    .attr('fill', 'var(--text-3)')
+    .attr('fill', '#c49285')
     .attr('font-size', '10px')
     .attr('font-family', "'JetBrains Mono', monospace")
     .attr('letter-spacing', '0.06em')
@@ -113,7 +135,7 @@ function addXLabelHBar(svg, label, w, h, mb) {
   svg.append('text')
     .attr('x', w / 2).attr('y', h + mb - 6)
     .attr('text-anchor', 'middle')
-    .attr('fill', 'var(--text-3)')
+    .attr('fill', '#c49285')
     .attr('font-size', '10px')
     .attr('font-family', "'JetBrains Mono', monospace")
     .attr('letter-spacing', '0.06em')
@@ -193,6 +215,8 @@ function drawTrend(data) {
   svg.append('path').datum(data).attr('fill', 'url(#trend-fill)').attr('d', area);
 
   /* line — draw animation */
+  // AI assisted with Prompt: "how to fix the animated trend line drawing from left to right using stroke-dashoffset over 2200ms with easeCubicInOut"
+  // Animation delay: 2200ms restarts on every filter/year redraw — fix by adding animate=true param, pass false from redrawNational()
   const line = d3.line()
     .x(d => x(d.year)).y(d => y(d.hospitalisations))
     .curve(d3.curveCatmullRom.alpha(0.5));
@@ -224,6 +248,8 @@ function drawTrend(data) {
       d3.select(e.currentTarget).transition().duration(120).attr('r', 5);
       hideTip();
     })
+    // AI assisted with Prompt: "how to fix show dots after the line finishes drawing, staggered per index"
+    // Animation delay: dots delay 2000+i*70ms, also restarts on every redraw; tie to same animate flag as the line above
     .transition().delay((_, i) => 2000 + i * 70).duration(300).attr('r', 5);
 
   /* annotations */
@@ -241,6 +267,8 @@ function drawTrend(data) {
       .attr('x', xPos).attr('y', y(d.hospitalisations) + dy - 5)
       .attr('text-anchor', anchor).attr('fill', C.red)
       .attr('font-size', '10px').attr('font-weight', '700').text(label);
+    // AI assisted with Prompt: "how to create the fade effect in peak and COVID annotations after the line and dots have finished drawing"
+    // Animation delay: delay(2600) also restarts on every redraw — gate behind same animate flag as line
     g.transition().delay(2600).duration(400).style('opacity', 1);
   };
   if (!hasFilter) {
@@ -261,6 +289,8 @@ function drawTrend(data) {
       .attr('transform', `translate(${xPos + 4}, ${h - 8}) rotate(-90)`)
       .attr('fill', '#cccccc').attr('font-size', '9px').attr('opacity', 0.65)
       .text(label);
+    // AI assisted with Prompt: "How to enhance the fade in vertical dashed regulation-change markers at 2012 and 2017 after annotations appear"
+    // Animation delay: delay(2600) restarts on every redraw — gate behind same animate flag
     g.transition().delay(2600).duration(400).style('opacity', 1);
   };
   if (!hasFilter) {
@@ -303,7 +333,7 @@ function drawRoadUsers(data, year) {
   const container = document.getElementById('chart-road-users');
   const _cs1 = window.getComputedStyle(container);
   const totalW = container.clientWidth - parseFloat(_cs1.paddingLeft) - parseFloat(_cs1.paddingRight);
-  const ml = 180, mr = 80, mt = 10, mb = 30;
+  const ml = 180, mr = 80, mt = 10, mb = 45;
   const w = totalW - ml - mr;
   const bH = 34, gap = 8;
   const h = rows.length * (bH + gap) - gap;
@@ -363,6 +393,8 @@ function drawRoadUsers(data, year) {
     })
     .on('mousemove', moveTip)
     .on('mouseout', (e, d) => { d3.select(e.currentTarget).attr('opacity', ruOpacity(d)); hideTip(); })
+    // AI assisted with Prompt: "How to animate horizontal bars growing from zero width on draw, 700ms easeExpOut"
+    // Animation delay: 700ms restarts on every cross-filter redraw — shorten to ~160ms on redraws using an animate flag
     .transition().duration(700).ease(d3.easeExpOut)
     .attr('width', d => x(d.hospitalisations));
 
@@ -386,6 +418,8 @@ function drawRoadUsers(data, year) {
           .text((pct >= 0 ? '▲' : '▼') + d3.format('.1%')(Math.abs(pct)));
       }
     })
+    // AI assisted with Prompt: "How to fade in value and delta labels after bars have grown, with a short delay"
+    // Animation delay: 560ms label delay also restarts on redraws — shorten to ~80ms with same animate flag
     .transition().delay(560).duration(280).style('opacity', 1);
 }
 
@@ -439,6 +473,8 @@ function drawAgeSex(data, year) {
         })
         .on('mousemove', moveTip)
         .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', agOpacity); hideTip(); })
+        // AI assisted with Prompt: "How to animate grouped bars rising from baseline with a dramatic overshoot entrance, 580ms easeBackOut"
+        // Animation overlap: overshoot makes bars briefly dip below baseline on filter redraws — use easeExpOut on redraws, overshoot only on first draw
         .transition().duration(580).ease(d3.easeBackOut.overshoot(0.5))
         .attr('y', y(d.hospitalisations))
         .attr('height', h - y(d.hospitalisations));
@@ -534,6 +570,8 @@ function drawStates(data, year) {
     })
     .on('mousemove', moveTip)
     .on('mouseout', (e) => { d3.select(e.currentTarget).attr('opacity', 0.82); hideTip(); })
+    // AI assisted with Prompt: "How to animate state bars growing from zero width on year change, 680ms easeExpOut"
+    // Animation delay: 680ms restarts on every year-selector change — shorten to ~160ms with animate flag for rapid stepping
     .transition().duration(680).ease(d3.easeExpOut)
     .attr('width', d => x(d.cases));
 
@@ -620,6 +658,9 @@ function drawRemoteness(data) {
       })
       .on('mouseout', hideTip);
 
+    // AI assisted with Prompt: "How to reveal each stacked area layer by animating a clip-path rect from width 0 to full width, 2000ms"
+    // Animation overlap: all 3 layers start simultaneously with no stagger — fix: .delay(i * 300) so layers reveal one after another
+    // Animation delay: 2000ms clip animation also restarts on cross-filter redraws — gate behind animate flag, skip on redraws
     clipRect.transition().duration(2000).ease(d3.easeCubicInOut).attr('width', w);
   });
 
@@ -760,6 +801,8 @@ function drawFNTrend(data) {
     .attr('fill', 'none').attr('stroke', C.red).attr('stroke-width', 2.5).attr('d', line);
 
   const len = path.node().getTotalLength();
+  // AI assisted with Prompt: "How to animate First Nations trend line using stroke-dashoffset over 2000ms, then show staggered dots"
+  // Animation delay: dots appear at delay(1900+i*70ms) — safe here since drawFNTrend only runs on initial load and resize, not on cross-filter
   path.attr('stroke-dasharray', len).attr('stroke-dashoffset', len)
     .transition().duration(2000).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0);
 
@@ -873,7 +916,12 @@ const revealObserver = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
 /*SCROLL PROGRESS BAR*/
+// AI assisted with Prompt: I reported that hovering a bar showed the tooltip correctly, but if I then
+// scrolled without moving the mouse the tooltip stayed visible on screen. AI identified the fix:
+// call hideTip() at the top of the scroll handler so any open tooltip is dismissed the moment the
+// user begins scrolling.
 window.addEventListener('scroll', () => {
+  hideTip();
   const bar = document.getElementById('progress-bar');
   const scrolled = window.scrollY;
   const total = document.body.scrollHeight - window.innerHeight;
@@ -895,8 +943,13 @@ function animateCounter(el, target, duration = 2000) {
   requestAnimationFrame(step);
 }
 
-/* ── Cross-filter engine ─────────────────────────────────────────────────── */
-
+/* Cross-filter engine  */
+// AI assisted with Prompt: I noticed that clicking a road-user bar to filter would leave only that one bar
+// visible in the road-users chart itself, making it impossible to switch to a different category (duplication /
+// feedback-loop problem). AI explained that the root cause is applying the active filter back onto the chart
+// that owns that dimension. The fix is filteredExcept(): each chart receives data filtered by every active
+// dimension EXCEPT its own, so the chart that controls a dimension always shows the full unfiltered set for
+// that dimension while other charts reflect the selection.
 function filteredExcept(...excludeKeys) {
   return rawData.filter(d =>
     Object.entries(filters).every(([k, v]) =>
@@ -906,6 +959,7 @@ function filteredExcept(...excludeKeys) {
 }
 
 function redrawNational(year) {
+  hideTip();
   /* Trend sees fully filtered data */
   const trend = Array.from(
     d3.rollup(filteredExcept(), v => d3.sum(v, d => d.hospitalisations), d => d.year),
